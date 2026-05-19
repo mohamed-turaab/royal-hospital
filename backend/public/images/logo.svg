@@ -1,0 +1,12 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Blue Heart Shape (Stylized R) -->
+  <path fill="#1B75BB" d="M200,370 L195,365 C120,290 40,210 40,140 C40,80 90,30 150,30 C185,30 215,50 230,80 C245,50 275,30 310,30 C370,30 420,80 420,140 C420,210 340,290 265,365 L260,370 Z" transform="translate(-30, 0)" />
+  
+  <!-- White 'R' detail -->
+  <path fill="white" d="M140,110 L140,260 L165,260 L165,110 Z" /> <!-- Vertical stem of R -->
+  <path fill="white" d="M140,110 L220,110 C250,110 270,130 270,160 C270,190 250,210 220,210 L140,210 Z M165,135 L165,185 L220,185 C235,185 245,175 245,160 C245,145 235,135 220,135 Z" /> <!-- Bowl of R -->
+  <path fill="white" d="M200,210 L270,300 L300,300 L225,210 Z" /> <!-- Leg of R -->
+
+  <!-- Yellow Crown -->
+  <path fill="#FDB913" d="M50,110 L70,50 L100,90 L135,40 L170,90 L200,50 L220,110 Z" transform="rotate(-25, 135, 80)" />
+</svg>
