@@ -456,26 +456,32 @@ export default function AccountantDashboard() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-royalBlue-300">Total Revenue ($)</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="25000"
-                    value={totalRevenue}
-                    onChange={(e) => setTotalRevenue(e.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-royalBlue focus:outline-none focus:ring-2 focus:ring-royalBlue/20"
-                  />
+                  <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-royalBlue-300">Total Revenue</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-royalBlue-300 pointer-events-none select-none">$</span>
+                    <input
+                      type="number"
+                      required
+                      placeholder="25000"
+                      value={totalRevenue}
+                      onChange={(e) => setTotalRevenue(e.target.value)}
+                      className="w-full rounded-2xl border border-white/10 bg-white/5 pl-8 pr-4 py-3 text-sm text-white focus:border-royalBlue focus:outline-none focus:ring-2 focus:ring-royalBlue/20"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-royalBlue-300">Total Expenses ($)</label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="12000"
-                    value={totalExpenses}
-                    onChange={(e) => setTotalExpenses(e.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-royalBlue focus:outline-none focus:ring-2 focus:ring-royalBlue/20"
-                  />
+                  <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-royalBlue-300">Total Expenses</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-royalBlue-300 pointer-events-none select-none">$</span>
+                    <input
+                      type="number"
+                      required
+                      placeholder="12000"
+                      value={totalExpenses}
+                      onChange={(e) => setTotalExpenses(e.target.value)}
+                      className="w-full rounded-2xl border border-white/10 bg-white/5 pl-8 pr-4 py-3 text-sm text-white focus:border-royalBlue focus:outline-none focus:ring-2 focus:ring-royalBlue/20"
+                    />
+                  </div>
                 </div>
               </div>
 

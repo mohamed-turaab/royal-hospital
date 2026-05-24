@@ -34,7 +34,8 @@ import {
   X,
   Edit,
   Trash2,
-  ClipboardList
+  ClipboardList,
+  ActivitySquare
 } from "lucide-react";
 
 // Animation variants
@@ -289,11 +290,12 @@ export default function AdminDashboard() {
       </motion.section>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3 xl:grid-cols-5">
         {analytics?.stats ? (
           [
             { label: "Active staff", value: analytics.stats.activeStaff, change: "Live", icon: Users },
             { label: "Open appointments", value: analytics.stats.pendingAppointments, change: "Pending", icon: Calendar },
+            { label: "Pending Lab Tests", value: analytics.stats.pendingLabTests, change: "Requires action", icon: ActivitySquare },
             { label: "Revenue today", value: analytics.stats.revenueToday, change: analytics.stats.revenueChange, icon: DollarSign },
             { label: "Critical alerts", value: analytics.stats.criticalAlerts, change: "Needs review", icon: Activity },
           ].map((item, index) => (

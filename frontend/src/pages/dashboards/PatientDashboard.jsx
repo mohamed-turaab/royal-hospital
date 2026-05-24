@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import api from "../../services/api";
 import Avatar from "../../components/Avatar";
+import PrintablePrescription from "../../components/PrintablePrescription";
 import { 
   Calendar, 
   Pill, 
@@ -41,6 +43,27 @@ const itemVariants = {
 export default function PatientDashboard() {
   const { user } = useAuth();
   const [now, setNow] = useState(new Date());
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [printingPrescription, setPrintingPrescription] = useState(null);
+
+  useEffect(() => {
+    const fetchPrescriptions = async () => {
+      try {
+        const { data } = await api.get("/prescriptions");
+        setPrescriptions(data);
+      } catch (error) {
+        console.error("Error fetching prescriptions:", error);
+      }
+    };
+    fetchPrescriptions();
+  }, []);
+
+  const handlePrint = (p) => {
+    setPrintingPrescription(p);
+    setTimeout(() => {
+      window.print();
+    }, 200);
+  };
 
   // Real-time clock
   useEffect(() => {
@@ -192,34 +215,46 @@ export default function PatientDashboard() {
 
           <div className="panel p-8">
             <h2 className="text-2xl font-black tracking-tight text-royalBlue-900 dark:text-white mb-8">Prescription History</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { name: "Amoxicillin", dose: "500mg, Twice daily", doctor: "Dr. Amina", duration: "7 Days" },
-                { name: "Panadol Extra", dose: "1000mg, As needed", doctor: "Dr. Ibrahim", duration: "5 Days" },
-              ].map((pill, i) => (
-                <div key={i} className="p-6 rounded-3xl bg-royalBlue-50/50 border border-royalBlue-100/10 dark:bg-royalBlue-900/20 dark:border-royalBlue-800/50 hover:border-royalBlue-100/30 transition-colors">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="h-12 w-12 rounded-2xl bg-royalBlue text-white flex items-center justify-center shadow-md shadow-royalBlue/20">
-                      <Pill size={22} />
-                    </div>
+            {prescriptions.length === 0 ? (
+              <div className="text-royalBlue-400 font-bold p-6 bg-royalBlue-50/50 rounded-2xl border border-royalBlue-100/20 text-center">No prescriptions found.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {prescriptions.map((p, i) => (
+                  <div key={p._id || i} className="p-6 rounded-3xl bg-royalBlue-50/50 border border-royalBlue-100/10 dark:bg-royalBlue-900/20 dark:border-royalBlue-800/50 hover:border-royalBlue-100/30 transition-colors flex flex-col justify-between">
                     <div>
-                      <div className="font-black text-lg text-royalBlue-950 dark:text-white">{pill.name}</div>
-                      <div className="text-xs font-bold text-royalBlue-400">By {pill.doctor}</div>
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="h-12 w-12 rounded-2xl bg-royalBlue text-white flex items-center justify-center shadow-md shadow-royalBlue/20 shrink-0">
+                          <Pill size={22} />
+                        </div>
+                        <div>
+                          <div className="font-black text-lg text-royalBlue-950 dark:text-white">{p.medicines?.[0]?.name || "Medicine Package"}</div>
+                          <div className="text-xs font-bold text-royalBlue-400">By Dr. {p.doctor?.name || 'Unknown'}</div>
+                        </div>
+                      </div>
+                      <div className="space-y-3 border-t border-royalBlue-100/10 pt-4 mb-6 text-sm font-black text-royalBlue-850 dark:text-royalBlue-200">
+                        <div className="flex justify-between">
+                          <span className="text-royalBlue-400 font-bold">Status</span>
+                          <span className={p.status === 'Dispensed' ? 'text-green-500' : 'text-royalBlue-600'}>{p.status}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-royalBlue-400 font-bold">Total Meds</span>
+                          <span>{p.medicines?.length || 0}</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-royalBlue-400/80">
+                          <span>{new Date(p.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
                     </div>
+                    <button 
+                      onClick={() => handlePrint(p)}
+                      className="w-full btn-secondary py-3 px-4 rounded-xl text-xs font-black shadow-sm"
+                    >
+                      View & Print Slip
+                    </button>
                   </div>
-                  <div className="space-y-3 border-t border-royalBlue-100/10 pt-4 text-sm font-black text-royalBlue-850 dark:text-royalBlue-200">
-                    <div className="flex justify-between">
-                      <span className="text-royalBlue-400 font-bold">Dosage</span>
-                      <span>{pill.dose}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-royalBlue-400 font-bold">Duration</span>
-                      <span>{pill.duration}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </motion.div>
 
@@ -277,6 +312,8 @@ export default function PatientDashboard() {
           </motion.div>
         </div>
       </div>
+
+      <PrintablePrescription prescription={printingPrescription} />
     </motion.div>
   );
 }

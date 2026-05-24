@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import Avatar from "../../components/Avatar";
+import PrintablePrescription from "../../components/PrintablePrescription";
 import { 
   Pill, 
   Package, 
@@ -67,6 +68,7 @@ export default function PharmacistDashboard() {
   const [queue, setQueue] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [printingPrescription, setPrintingPrescription] = useState(null);
 
   // Real-time clock
   useEffect(() => {
@@ -100,6 +102,13 @@ export default function PharmacistDashboard() {
       console.error("Error dispensing prescription:", error);
       alert("Failed to dispense medication");
     }
+  };
+
+  const handlePrint = (p) => {
+    setPrintingPrescription(p);
+    setTimeout(() => {
+      window.print();
+    }, 200);
   };
 
   const filteredQueue = queue.filter(item => {
@@ -231,19 +240,49 @@ export default function PharmacistDashboard() {
                 {filteredQueue.map((p, idx) => {
                   const pName = p.patientName || p.patient?.name || "Unknown Patient";
                   const dName = p.doctor?.name || "Doctor";
-                  const medString = (p.medicines || []).map(m => `${m.name} (${m.dosage || 'N/A'})`).join(", ");
                   return (
                     <div 
                       key={p._id || idx} 
-                      className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 rounded-3xl border border-royalBlue-50 dark:border-royalBlue-800/50 hover:bg-royalBlue-50/50 dark:hover:bg-royalBlue-900/10 transition-colors gap-6 bg-white dark:bg-navyBlue-900/40"
+                      className="flex flex-col items-start justify-between p-6 rounded-3xl border border-royalBlue-50 dark:border-royalBlue-800/50 hover:bg-royalBlue-50/50 dark:hover:bg-royalBlue-900/10 transition-colors gap-6 bg-white dark:bg-navyBlue-900/40"
                     >
-                      <div className="flex items-center gap-5">
-                        <div className="h-14 w-14 rounded-2xl bg-royalBlue text-white flex items-center justify-center font-black text-xl shadow-md shadow-royalBlue/20">
-                          {pName[0]}
-                        </div>
-                        <div>
-                          <div className="font-black text-lg text-royalBlue-900 dark:text-white">{pName}</div>
-                          <div className="text-xs font-bold text-royalBlue-400">By {dName} • <span className="text-royalBlue-600 dark:text-royalBlue-300 font-extrabold">{medString || "Medications Package"}</span></div>
+                      <div className="flex flex-col md:flex-row w-full justify-between gap-6">
+                        <div className="flex items-start gap-5">
+                          <div className="h-14 w-14 rounded-2xl bg-royalBlue text-white flex items-center justify-center font-black text-xl shadow-md shadow-royalBlue/20 shrink-0">
+                            {pName[0]}
+                          </div>
+                          <div className="w-full">
+                            <div className="font-black text-lg text-royalBlue-900 dark:text-white">{pName}</div>
+                            <div className="text-xs font-bold text-royalBlue-400 mb-4">Prescribed by {dName}</div>
+                            
+                            {/* Detailed Medicine List */}
+                            <div className="space-y-3 w-full">
+                              {(p.medicines || []).map((m, i) => (
+                                <div key={i} className="p-4 rounded-2xl bg-royalBlue-50/50 dark:bg-navyBlue-950/50 border border-royalBlue-100/50 dark:border-navyBlue-800/50 w-full md:min-w-[400px]">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <div className="font-black text-royalBlue-900 dark:text-white">{m.name}</div>
+                                    <div className="text-[10px] font-black bg-royalBlue text-white px-2 py-1 rounded-lg uppercase tracking-wider">{m.dosage || 'N/A'}</div>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                                    <div><span className="text-royalBlue-400 font-bold uppercase tracking-wider text-[9px]">Frequency:</span> <span className="font-semibold text-royalBlue-900 dark:text-royalBlue-200">{m.frequency || '-'}</span></div>
+                                    <div><span className="text-royalBlue-400 font-bold uppercase tracking-wider text-[9px]">Duration:</span> <span className="font-semibold text-royalBlue-900 dark:text-royalBlue-200">{m.duration || '-'}</span></div>
+                                  </div>
+                                  {m.instructions && (
+                                    <div className="text-xs text-navyBlue-500 dark:text-navyBlue-400 bg-white/50 dark:bg-black/20 p-2 rounded-xl border border-royalBlue-100/20">
+                                      <span className="font-bold text-royalBlue-400 mr-1">Instructions:</span> 
+                                      {m.instructions}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                              
+                              {p.notes && (
+                                <div className="mt-4 text-xs p-3 rounded-2xl bg-royalYellow/10 text-royalYellow-700 border border-royalYellow/20">
+                                  <span className="font-black uppercase tracking-wider mr-2">Doctor's Notes:</span>
+                                  {p.notes}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-royalBlue-50 dark:border-royalBlue-800/30 pt-4 md:pt-0">
@@ -251,16 +290,32 @@ export default function PharmacistDashboard() {
                           <div className="text-[10px] text-green-500 font-black uppercase tracking-widest bg-green-500/10 px-2.5 py-1 rounded-lg">PAID</div>
                         </div>
                         {p.status === 'Dispensed' ? (
-                          <div className="flex items-center gap-2 text-green-500 font-black text-xs uppercase tracking-widest bg-green-500/10 px-3.5 py-1.5 rounded-xl">
-                            <CheckCircle2 size={18} /> Dispensed
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 text-green-500 font-black text-xs uppercase tracking-widest bg-green-500/10 px-3.5 py-1.5 rounded-xl">
+                              <CheckCircle2 size={18} /> Dispensed
+                            </div>
+                            <button 
+                              onClick={() => handlePrint(p)}
+                              className="btn-secondary py-2 px-4 rounded-xl text-xs font-black shadow-sm"
+                            >
+                              Print Slip
+                            </button>
                           </div>
                         ) : (
-                          <button 
-                            onClick={() => handleProcessMed(p._id)}
-                            className="btn-primary py-2.5 px-6 rounded-xl text-xs font-black transition-all focus-visible:ring-4 focus-visible:ring-royalBlue/20 outline-none active:scale-95 shadow-md shadow-royalBlue/20"
-                          >
-                            Dispense Medicine
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={() => handlePrint(p)}
+                              className="btn-secondary py-2.5 px-4 rounded-xl text-xs font-black shadow-sm"
+                            >
+                              Print Slip
+                            </button>
+                            <button 
+                              onClick={() => handleProcessMed(p._id)}
+                              className="btn-primary py-2.5 px-6 rounded-xl text-xs font-black transition-all focus-visible:ring-4 focus-visible:ring-royalBlue/20 outline-none active:scale-95 shadow-md shadow-royalBlue/20"
+                            >
+                              Dispense Medicine
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -334,6 +389,9 @@ export default function PharmacistDashboard() {
           </motion.div>
         </div>
       </div>
+      
+      {/* Hidden Printable Component */}
+      <PrintablePrescription prescription={printingPrescription} />
     </motion.div>
   );
 }
