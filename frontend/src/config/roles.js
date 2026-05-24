@@ -28,6 +28,7 @@ export const APP_ROLES = [
   "Patient",
   "Pharmacist",
   "Accountant",
+  "Lab Technician",
 ];
 
 export const rolePath = (role) => `/${String(role || "admin").toLowerCase()}/dashboard`;
@@ -47,6 +48,7 @@ export const sidebarNav = [
   { label: "Reports", to: "reports", icon: BarChart3, roles: ["Admin", "Doctor", "Nurse", "Pharmacist", "Accountant"] },
   { label: "Analytics", to: "analytics", icon: TrendingUp, roles: ["Admin"] },
   { label: "Settings", to: "profile", icon: Settings, roles: APP_ROLES },
+  { label: "Lab Tests", to: "lab-tests", icon: Activity, roles: ["Admin", "Doctor", "Nurse", "Lab Technician", "Patient"] },
 ];
 
 const sharedPanels = [
@@ -71,6 +73,7 @@ export const dashboardConfig = {
     stats: [
       { label: "Active staff", value: "74", change: "+6 today", icon: Users },
       { label: "Open appointments", value: "156", change: "18 pending", icon: Calendar },
+      { label: "Pending Lab Tests", value: "12", change: "Requires action", icon: Activity },
       { label: "Revenue today", value: "$42.8k", change: "+8.2%", icon: DollarSign },
       { label: "Critical alerts", value: "04", change: "Needs review", icon: Activity },
     ],
@@ -272,6 +275,24 @@ export const dashboardConfig = {
       { title: "Today collected", detail: "$4.2k posted to accounts" },
       { title: "Pending claims", detail: "4 insurance items require review" },
       { title: "Month close", detail: "6 reports ready for export" },
+    ],
+    panels: sharedPanels,
+  },
+  "Lab Technician": {
+    eyebrow: "Laboratory",
+    title: "Lab Technician Dashboard",
+    subtitle: "Manage lab tests, process samples, and upload results.",
+    status: "Lab Online",
+    stats: [
+      { label: "Pending Samples", value: "0", change: "Awaiting collect", icon: ClipboardPlus },
+      { label: "Pending Results", value: "0", change: "Requires upload", icon: Activity },
+      { label: "Completed", value: "0", change: "Today", icon: ShieldCheck },
+    ],
+    highlights: [
+      { title: "Test Results", description: "Upload PDF or image results for patient files." },
+    ],
+    worklist: [
+      { title: "Urgent", detail: "Check pending test requests." }
     ],
     panels: sharedPanels,
   },
