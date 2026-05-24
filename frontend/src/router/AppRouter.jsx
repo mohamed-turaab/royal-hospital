@@ -16,6 +16,7 @@ import ReceptionistDashboard from "../pages/dashboards/ReceptionistDashboard";
 import PatientDashboard from "../pages/dashboards/PatientDashboard";
 import PharmacistDashboard from "../pages/dashboards/PharmacistDashboard";
 import AccountantDashboard from "../pages/dashboards/AccountantDashboard";
+import LabTechnicianDashboard from "../pages/dashboards/LabTechnicianDashboard";
 import PharmacistPrescriptions from "../pages/pharmacist/PharmacistPrescriptions";
 
 import Patients from "../pages/Patients";
@@ -27,6 +28,7 @@ import DoctorReports from "../pages/doctor/DoctorReports";
 import Rooms from "../pages/Rooms";
 import BillingCheckout from "../pages/BillingCheckout";
 import AdminAnalytics from "../pages/AdminAnalytics";
+import LabTests from "../pages/LabTests";
 
 function Protected({ children }) {
   const { user, loading } = useAuth();
@@ -55,6 +57,7 @@ function DashboardSwitcher() {
     case "Patient": return <PatientDashboard />;
     case "Pharmacist": return <PharmacistDashboard />;
     case "Accountant": return <AccountantDashboard />;
+    case "Lab Technician": return <LabTechnicianDashboard />;
     default: return <Navigate to="/login" replace />;
   }
 }
@@ -82,15 +85,17 @@ function SectionRouteWrapper() {
     return <DoctorReports />;
   }
   
-  if (role === "doctor") {
+  if (role === "doctor" || role === "admin") {
     switch (section) {
-      case "appointments": return <DoctorAppointments />;
+      case "appointments": 
+        if (role === "doctor") return <DoctorAppointments />;
+        break; // Admins use general appointments above
       case "prescriptions": return <DoctorPrescriptions />;
       case "reports": return <DoctorReports />;
-      default: return <SectionPage />;
+      default: break;
     }
   }
-  
+
   if (section === "billing") {
     return <BillingCheckout />;
   }
@@ -98,7 +103,7 @@ function SectionRouteWrapper() {
   if (section === "rooms") {
     return <Rooms />;
   }
-  
+
   if (role === "pharmacist") {
     switch (section) {
       case "prescriptions":
@@ -106,6 +111,10 @@ function SectionRouteWrapper() {
         return <PharmacistPrescriptions />;
       default: return <SectionPage />;
     }
+  }
+
+  if (section === "lab-tests") {
+    return <LabTests />;
   }
 
   return <SectionPage />;
