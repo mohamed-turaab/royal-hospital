@@ -34,27 +34,42 @@ export async function listAppointments(req, res) {
 
 export async function createAppointment(req, res) {
   try {
-    const receptionistId = req.user.userId || req.user.id || req.user._id;
+    const userId = req.user.userId || req.user.id || req.user._id;
     
+    let patientId = req.body.patient;
+
+    // If the logged-in user is a Patient, auto-resolve their patient record
+    if (req.user.role === "Patient") {
+      const patientRecord = await Patient.findOne({ user: userId });
+      if (!patientRecord) {
+        return res.status(400).json({ message: "Patient record not found for this user. Please contact the receptionist to register your patient profile." });
+      }
+      patientId = patientRecord._id;
+    }
+
+    if (!patientId) {
+      return res.status(400).json({ message: "Patient is required." });
+    }
+
     // Create the appointment
     const appointment = await Appointment.create({
-      patient: req.body.patient,
+      patient: patientId,
       doctor: req.body.doctor,
       scheduledAt: req.body.scheduledAt,
       status: req.body.status || "Scheduled",
       notes: req.body.notes,
-      createdBy: receptionistId
+      createdBy: userId
     });
 
     // Create a transaction if amountCollected > 0
     if (req.body.amountCollected && Number(req.body.amountCollected) > 0) {
-      const patientRecord = await Patient.findById(req.body.patient);
-      const receptionistRecord = await User.findById(receptionistId);
+      const patientDoc = await Patient.findById(patientId);
+      const receptionistRecord = await User.findById(userId);
 
-      if (patientRecord && receptionistRecord) {
+      if (patientDoc && receptionistRecord) {
         await Transaction.create({
-          patient: patientRecord._id,
-          patientName: patientRecord.name,
+          patient: patientDoc._id,
+          patientName: patientDoc.name,
           receptionist: receptionistRecord._id,
           receptionistName: receptionistRecord.name,
           amount: Number(req.body.amountCollected),
@@ -68,7 +83,7 @@ export async function createAppointment(req, res) {
     res.status(201).json(appointment);
   } catch (error) {
     console.error("Error creating appointment:", error);
-    res.status(500).json({ message: "Server error while creating appointment" });
+    res.status(500).json({ message: error.message || "Server error while creating appointment" });
   }
 }
 
