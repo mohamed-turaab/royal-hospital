@@ -12,7 +12,7 @@ const router = Router();
 // Submit report (Accountant only)
 router.route("/")
   .get(protect, authorize("Admin", "Accountant"), getRevenueReports)
-  .post(protect, authorize("Accountant"), submitRevenueReport);
+  .post(protect, authorize("Admin", "Accountant"), submitRevenueReport);
 
 // Update status (Admin only)
 router.route("/:id/status")
