@@ -38,6 +38,7 @@ export default function Layout() {
     resolveEmergency, 
     triggerEmergencyMock,
     markAllRead,
+    markOneRead,
     clearNotifications
   } = useSocket();
   
@@ -531,16 +532,12 @@ export default function Layout() {
             </button>
 
             {/* 🔔 Glassmorphism Notifications Dropdown */}
-            <AnimatePresence>
-              {showNotifications && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                    className="absolute right-0 top-16 z-50 w-[380px] overflow-hidden rounded-[32px] border border-royalBlue-100/10 bg-white dark:bg-navyBlue-900 shadow-2xl p-6 backdrop-blur-2xl"
-                  >
+            {showNotifications && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                <div
+                  className="absolute right-0 top-16 z-50 w-[380px] overflow-hidden rounded-[32px] border border-royalBlue-100/10 bg-white dark:bg-navyBlue-900 shadow-2xl p-6 backdrop-blur-2xl animate-fade-in-up"
+                >
                     <div className="flex justify-between items-center pb-4 border-b border-royalBlue-100/10 mb-4">
                       <div>
                         <h4 className="font-black text-base text-royalBlue-950 dark:text-white">Notifications</h4>
@@ -565,7 +562,14 @@ export default function Layout() {
                         notifications.map((notif) => (
                           <div 
                             key={notif.id} 
-                            className={`p-3.5 rounded-2xl border transition-all ${
+                            onClick={() => {
+                              if (!notif.read) markOneRead(notif.id);
+                              if (notif.link) {
+                                navigate(notif.link);
+                              }
+                              setShowNotifications(false);
+                            }}
+                            className={`p-3.5 rounded-2xl border transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${
                               notif.read 
                                 ? 'bg-royalBlue-50/10 border-royalBlue-100/5' 
                                 : 'bg-royalBlue-50/50 border-royalBlue-100/20 dark:bg-royalBlue-900/10 dark:border-royalBlue-800'
@@ -588,22 +592,21 @@ export default function Layout() {
                       )}
                     </div>
 
-                    {/* Simulation Triggers area inside notification panel */}
+                    {/* Emergency Alert Button */}
                     <div className="mt-6 pt-4 border-t border-royalBlue-100/10 flex flex-col gap-2">
                       <button
                         onClick={() => {
-                          triggerEmergencyMock("CRITICAL CODE BLUE: Cardiac Arrest in Room 301 (VIP Suite)", "VIP Suite, Room 301");
+                          triggerEmergencyMock("XAALADDA DEGDEGA AH: Wadnaha waa joogsaday qolka 301 (VIP Suite)", "VIP Suite, Qolka 301");
                           setShowNotifications(false);
                         }}
-                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-red-500/10 border border-red-500/20 py-2.5 text-[10px] font-black uppercase tracking-widest text-red-500 transition-all hover:bg-red-500 hover:text-white"
+                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-red-500/10 border border-red-500/20 py-3 text-[11px] font-black uppercase tracking-widest text-red-500 transition-all hover:bg-red-500 hover:text-white"
                       >
-                        <ShieldAlert size={14} /> Trigger Code Red
+                        <ShieldAlert size={14} /> 🚨 Send Emergency Alert
                       </button>
                     </div>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
+                </div>
+              </>
+            )}
 
             <div className="hidden h-8 w-px bg-royalBlue-100 dark:bg-royalBlue-800 sm:block" />
 
