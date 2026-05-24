@@ -6,6 +6,7 @@ export const ROLES = [
   "Patient",
   "Pharmacist",
   "Accountant",
+  "Lab Technician",
 ];
 
 export const ROLE_STATUS = {
@@ -16,6 +17,7 @@ export const ROLE_STATUS = {
   Patient: "Registered",
   Pharmacist: "On Duty",
   Accountant: "Active",
+  "Lab Technician": "On Duty",
 };
 
 export const ROLE_SEEDS = [
@@ -60,5 +62,11 @@ export const ROLE_SEEDS = [
     email: "accountant@hospital.com",
     role: "Accountant",
     profileImage: "https://i.pravatar.cc/150?img=15",
+  },
+  {
+    name: "Ali Lab Tech",
+    email: "lab@hospital.com",
+    role: "Lab Technician",
+    profileImage: "https://i.pravatar.cc/150?img=11",
   },
 ];
