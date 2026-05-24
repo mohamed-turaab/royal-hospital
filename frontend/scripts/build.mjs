@@ -240,6 +240,37 @@ await cp(
   { force: false },
 );
 
+// Download react-is.production.min.js from UNPKG CDN since React 19 no longer includes UMD in its node_modules
+const reactIsPath = path.join(backendPublicDir, "vendor", "react-is.production.min.js");
+try {
+  const response = await fetch("https://unpkg.com/react-is@18.3.1/umd/react-is.production.min.js");
+  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+  const text = await response.text();
+  await writeFile(reactIsPath, text);
+} catch (err) {
+  console.warn("Failed to download react-is from CDN, trying to generate placeholder...", err);
+  // Fallback: write a basic ReactIs shim so recharts doesn't crash if offline
+  await writeFile(reactIsPath, `
+    (function (global, factory) {
+      typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+      typeof define === 'function' && define.amd ? define(['exports'], factory) :
+      (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.ReactIs = {}));
+    })(this, (function (exports) { 'use strict';
+      exports.isFragment = function() { return false; };
+      exports.isContextConsumer = function() { return false; };
+      exports.isContextProvider = function() { return false; };
+      exports.isElement = function() { return false; };
+      exports.isForwardRef = function() { return false; };
+      exports.isLazy = function() { return false; };
+      exports.isMemo = function() { return false; };
+      exports.isPortal = function() { return false; };
+      exports.isValidElementType = function() { return true; };
+      Object.defineProperty(exports, '__esModule', { value: true });
+    }));
+  `);
+}
+
+
 for (const item of await readdir(frontendPublicDir, { withFileTypes: true })) {
   const source = path.join(frontendPublicDir, item.name);
   const target = path.join(backendPublicDir, item.name);
