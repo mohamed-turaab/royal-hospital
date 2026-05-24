@@ -36,7 +36,11 @@ export async function listPrescriptions(req, res) {
 export async function createPrescription(req, res) {
   try {
     // Find doctor profile for the logged-in user
-    const doctorProfile = await Doctor.findOne({ user: req.user.id || req.user._id });
+    let doctorProfile = await Doctor.findOne({ user: req.user.id || req.user._id });
+    if (!doctorProfile && req.user.role === "Admin") {
+      // Fallback: use first available doctor for Admin prescribing
+      doctorProfile = await Doctor.findOne({});
+    }
     if (!doctorProfile) {
       return res.status(400).json({ message: "Doctor profile not found for this user." });
     }
