@@ -68,11 +68,27 @@ export default function Appointments() {
   });
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
+  const [myPatientId, setMyPatientId] = useState("");
+
   useEffect(() => {
     fetchAppointments();
     fetchPatients();
     fetchDoctors();
   }, []);
+
+  // When patients load and role is Patient, find own patient record
+  useEffect(() => {
+    if (role === "Patient" && patients.length > 0 && user) {
+      // Match by user._id or user reference
+      const mine = patients.find(p => 
+        (p.user?._id && p.user._id === user.id) ||
+        (p.user?._id && p.user._id === user._id) ||
+        (p.userId && p.userId === user.id) ||
+        (p._id === user.patientId)
+      ) || patients[0];
+      if (mine) setMyPatientId(mine._id);
+    }
+  }, [patients, role, user]);
 
   const fetchAppointments = async () => {
     try {
@@ -120,7 +136,7 @@ export default function Appointments() {
     } else {
       setEditingAppointment(null);
       setFormData({
-        patient: role === "Patient" ? (patients[0]?._id || "") : "",
+        patient: role === "Patient" ? myPatientId : "",
         doctor: "",
         scheduledDate: "",
         scheduledTime: "",
@@ -240,7 +256,7 @@ export default function Appointments() {
               Bookings, confirmations, and queue management.
             </p>
             <div className="mt-6 sm:mt-10 flex flex-wrap gap-3 sm:gap-4">
-              {(role === "Receptionist" || role === "Patient") && (
+              {(role === "Receptionist" || role === "Patient" || role === "Admin") && (
                 <button onClick={() => handleOpenModal()} className="btn-primary px-6 sm:px-8 group">
                   <Plus size={20} className="transition-transform group-hover:rotate-90" /> {role === "Patient" ? "Book Appointment" : "New Booking"}
                 </button>
@@ -502,14 +518,17 @@ export default function Appointments() {
               {!editingAppointment && role !== "Patient" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-navyBlue-300 uppercase tracking-wider mb-2">Booking Fee ($)</label>
-                    <input
-                      type="number"
-                      placeholder="e.g. 50"
-                      value={formData.amountCollected}
-                      onChange={e => setFormData({...formData, amountCollected: e.target.value})}
-                      className="w-full bg-navyBlue-950/50 border border-navyBlue-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-royalBlue"
-                    />
+                    <label className="block text-xs font-bold text-navyBlue-300 uppercase tracking-wider mb-2">Booking Fee</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-navyBlue-400 pointer-events-none select-none">$</span>
+                      <input
+                        type="number"
+                        placeholder="e.g. 50"
+                        value={formData.amountCollected}
+                        onChange={e => setFormData({...formData, amountCollected: e.target.value})}
+                        className="w-full bg-navyBlue-950/50 border border-navyBlue-800 rounded-xl pl-8 pr-4 py-3 text-white focus:outline-none focus:border-royalBlue"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-navyBlue-300 uppercase tracking-wider mb-2">Payment Method</label>

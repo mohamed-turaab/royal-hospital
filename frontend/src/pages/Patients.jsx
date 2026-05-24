@@ -57,6 +57,7 @@ export default function Patients() {
   const role = user?.role || "Admin";
   const [patients, setPatients] = useState([]);
   const [doctors, setDoctors] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -75,6 +76,7 @@ export default function Patients() {
     fetchPatients();
     fetchDoctors();
     fetchAppointments();
+    fetchRooms();
   }, []);
 
   const fetchAppointments = async () => {
@@ -101,6 +103,15 @@ export default function Patients() {
       setDoctors(data);
     } catch (error) {
       console.error("Error fetching doctors:", error);
+    }
+  };
+
+  const fetchRooms = async () => {
+    try {
+      const { data } = await api.get("/rooms");
+      setRooms(data);
+    } catch (error) {
+      console.error("Error fetching rooms:", error);
     }
   };
 
@@ -228,7 +239,7 @@ export default function Patients() {
               Live intake, care flow, and patient-level activity.
             </p>
             <div className="mt-6 sm:mt-10 flex flex-wrap gap-3 sm:gap-4">
-              {role === "Receptionist" && (
+              {(role === "Receptionist" || role === "Admin") && (
                 <button onClick={() => handleOpenModal()} className="btn-primary px-6 sm:px-8 group">
                   <Plus size={20} className="transition-transform group-hover:rotate-90" /> Add New Patient
                 </button>
@@ -317,7 +328,7 @@ export default function Patients() {
                 <th className="px-6 py-5">Demographics</th>
                 <th className="px-6 py-5">Assignment</th>
                 <th className="px-6 py-5">Status & Condition</th>
-                {role === "Receptionist" && <th className="px-6 py-5 text-right">Actions</th>}
+                {(role === "Receptionist" || role === "Admin") && <th className="px-6 py-5 text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-navyBlue-50 dark:divide-navyBlue-800/50">
@@ -375,7 +386,7 @@ export default function Patients() {
                         {patient.condition}
                       </div>
                     </td>
-                    {role === "Receptionist" && (
+                    {(role === "Receptionist" || role === "Admin") && (
                       <td className="px-6 py-5 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button onClick={(e) => { e.stopPropagation(); handleOpenModal(patient); }} className="p-2 text-navyBlue-500 hover:text-royalBlue hover:bg-royalBlue/10 rounded-lg transition-colors">
@@ -561,7 +572,12 @@ export default function Patients() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-xs font-bold text-navyBlue-300 uppercase tracking-wider mb-2">Status</label><select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full bg-navyBlue-950/50 border border-navyBlue-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-royalBlue"><option>Stable</option><option>Recovering</option><option>Critical</option></select></div>
-                <div><label className="block text-xs font-bold text-navyBlue-300 uppercase tracking-wider mb-2">Assigned Room</label><input type="text" value={formData.room} onChange={e => setFormData({...formData, room: e.target.value})} className="w-full bg-navyBlue-950/50 border border-navyBlue-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-royalBlue" placeholder="e.g. Ward A - 101" /></div>
+                <div><label className="block text-xs font-bold text-navyBlue-300 uppercase tracking-wider mb-2">Assigned Room</label>
+                  <select value={formData.room} onChange={e => setFormData({...formData, room: e.target.value})} className="w-full bg-navyBlue-950/50 border border-navyBlue-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-royalBlue">
+                    <option value="Unassigned">Unassigned</option>
+                    {rooms.map(r => <option key={r._id} value={r.roomNumber}>{r.roomNumber} ({r.type})</option>)}
+                  </select>
+                </div>
               </div>
 
               <div><label className="block text-xs font-bold text-navyBlue-300 uppercase tracking-wider mb-2">Assigned Doctor</label>
