@@ -54,28 +54,24 @@ async function seed() {
     { name: "Nurse Bashir", email: "bashir@hospital.com", password: hashedPassword, role: "Nurse", status: "On Shift", profileImage: "/images/nurses/nurse2.png" },
   ]);
 
-  // ─── RECEPTIONISTS (4) ───
+  // ─── RECEPTIONISTS (1) ───
   const receptionists = await User.insertMany([
     { name: "Receptionist Leyla", email: "leyla@hospital.com", password: hashedPassword, role: "Receptionist", status: "Front Desk", profileImage: "https://i.pravatar.cc/150?img=13" },
-    { name: "Receptionist Abdi", email: "abdi_r@hospital.com", password: hashedPassword, role: "Receptionist", status: "Front Desk", profileImage: "https://i.pravatar.cc/150?img=14" },
-    { name: "Receptionist Faduma", email: "faduma@hospital.com", password: hashedPassword, role: "Receptionist", status: "Front Desk", profileImage: "https://i.pravatar.cc/150?img=15" },
-    { name: "Receptionist Muse", email: "muse@hospital.com", password: hashedPassword, role: "Receptionist", status: "Front Desk", profileImage: "https://i.pravatar.cc/150?img=16" },
   ]);
 
-  // ─── PHARMACISTS (4) ───
+  // ─── PHARMACISTS (1) ───
   const pharmacists = await User.insertMany([
     { name: "Pharma Kadiro", email: "kadiro@hospital.com", password: hashedPassword, role: "Pharmacist", status: "Active", profileImage: "https://i.pravatar.cc/150?img=17" },
-    { name: "Pharma Said", email: "said@hospital.com", password: hashedPassword, role: "Pharmacist", status: "Active", profileImage: "https://i.pravatar.cc/150?img=18" },
-    { name: "Pharma Zamzam", email: "zamzam@hospital.com", password: hashedPassword, role: "Pharmacist", status: "Active", profileImage: "https://i.pravatar.cc/150?img=19" },
-    { name: "Pharma Warsame", email: "warsame_p@hospital.com", password: hashedPassword, role: "Pharmacist", status: "Active", profileImage: "https://i.pravatar.cc/150?img=20" },
   ]);
 
-  // ─── ACCOUNTANTS (4) ───
+  // ─── ACCOUNTANTS (1) ───
   const accountants = await User.insertMany([
     { name: "Accountant Nuur", email: "nuur@hospital.com", password: hashedPassword, role: "Accountant", status: "Active", profileImage: "https://i.pravatar.cc/150?img=21" },
-    { name: "Accountant Ifrah", email: "ifrah@hospital.com", password: hashedPassword, role: "Accountant", status: "Active", profileImage: "https://i.pravatar.cc/150?img=22" },
-    { name: "Accountant Guleid", email: "guleid@hospital.com", password: hashedPassword, role: "Accountant", status: "Active", profileImage: "https://i.pravatar.cc/150?img=23" },
-    { name: "Accountant Amina", email: "amina_a@hospital.com", password: hashedPassword, role: "Accountant", status: "Active", profileImage: "https://i.pravatar.cc/150?img=24" },
+  ]);
+
+  // ─── LAB TECHNICIANS (1) ───
+  const labTechs = await User.insertMany([
+    { name: "Ali Lab Tech", email: "lab@hospital.com", password: hashedPassword, role: "Lab Technician", status: "Active", profileImage: "https://i.pravatar.cc/150?img=33" },
   ]);
 
   // ─── PATIENTS (4) ───
