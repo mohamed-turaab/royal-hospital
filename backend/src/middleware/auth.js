@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 // Middleware to protect routes (verify JWT)
-export const protect = (req, res, next) => {
+export const protect = async (req, res, next) => {
   let token;
 
   if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
@@ -15,7 +16,14 @@ export const protect = (req, res, next) => {
   try {
     const secret = process.env.JWT_SECRET || "replace_with_a_long_secure_secret";
     const decoded = jwt.verify(token, secret);
-    req.user = decoded; // Contains id and role
+    
+    // Fetch user from DB so all fields (like name, _id) are available
+    req.user = await User.findById(decoded.id).select("-password");
+    
+    if (!req.user) {
+      return res.status(401).json({ message: "Not authorized, user not found" });
+    }
+    
     next();
   } catch (error) {
     return res.status(401).json({ message: "Not authorized, token failed" });
