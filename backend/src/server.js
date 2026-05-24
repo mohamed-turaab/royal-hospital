@@ -1,11 +1,12 @@
 import dotenv from "dotenv";
-dotenv.config();
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), "..", ".env") });
+
 
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import routes from "./routes/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
