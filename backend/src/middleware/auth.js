@@ -1,7 +1,5 @@
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "replace_with_a_long_secure_secret";
-
 // Middleware to protect routes (verify JWT)
 export const protect = (req, res, next) => {
   let token;
@@ -15,7 +13,8 @@ export const protect = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const secret = process.env.JWT_SECRET || "replace_with_a_long_secure_secret";
+    const decoded = jwt.verify(token, secret);
     req.user = decoded; // Contains id and role
     next();
   } catch (error) {
