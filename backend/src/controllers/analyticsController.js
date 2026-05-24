@@ -4,6 +4,7 @@ import Room from "../models/Room.js";
 import RevenueReport from "../models/RevenueReport.js";
 import Bill from "../models/Bill.js";
 import Transaction from "../models/Transaction.js";
+import LabTest from "../models/LabTest.js";
 
 export async function getAdminAnalytics(req, res) {
   try {
@@ -11,6 +12,7 @@ export async function getAdminAnalytics(req, res) {
     const totalUsers = await User.countDocuments();
     const activeStaff = await User.countDocuments({ role: { $ne: "Patient" }, status: { $regex: /Active|On Duty|On Shift/i } });
     const pendingAppointments = await Appointment.countDocuments({ status: { $regex: /Scheduled|Pending/i } });
+    const pendingLabTests = await LabTest.countDocuments({ status: { $regex: /Pending/i } });
     
     // Calculate pending reports for Admin alerts
     const pendingReportsCount = await RevenueReport.countDocuments({ status: "Pending Approval" });
@@ -89,7 +91,8 @@ export async function getAdminAnalytics(req, res) {
         pendingAppointments,
         revenueToday,
         revenueChange,
-        criticalAlerts
+        criticalAlerts,
+        pendingLabTests
       },
       charts: {
         revenueData,
