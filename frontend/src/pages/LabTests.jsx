@@ -31,6 +31,19 @@ const TEST_TYPES = [
   "X-Ray", "Ultrasound", "CT Scan", "MRI", "ECG", "Culture & Sensitivity",
 ];
 
+const SPECIMEN_TYPES = [
+  "Blood Sample",
+  "Urine Sample",
+  "Stool Sample",
+  "X-Ray Imaging",
+  "Ultrasound Imaging",
+  "CT Scan Imaging",
+  "MRI Imaging",
+  "ECG Reading",
+  "Culture Swab",
+  "Other",
+];
+
 function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG["Pending Payment"];
   const Icon = cfg.icon;
@@ -53,8 +66,14 @@ export default function LabTests() {
 
   // Doctor: Create Lab Test modal
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState({ patientId: "", testName: "", notes: "" });
+  const [createForm, setCreateForm] = useState({ patientId: "", testName: "", notes: "", amount: 25 });
   const [creating, setCreating] = useState(false);
+
+  // Nurse: Collect sample modal
+  const [showCollectModal, setShowCollectModal] = useState(false);
+  const [collectTest, setCollectTest] = useState(null);
+  const [collectForm, setCollectForm] = useState({ specimenTypes: [], sampleNotes: "" });
+  const [collecting, setCollecting] = useState(false);
 
   // Lab Tech: Upload Result modal
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -101,7 +120,7 @@ export default function LabTests() {
     try {
       await api.post("/lab-tests", createForm);
       setShowCreateModal(false);
-      setCreateForm({ patientId: "", testName: "", notes: "" });
+      setCreateForm({ patientId: "", testName: "", notes: "", amount: 25 });
       fetchLabTests();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to create lab test");
@@ -120,13 +139,21 @@ export default function LabTests() {
     }
   };
 
-  // Nurse: Mark Sample Collected
-  const handleCollect = async (id) => {
+  // Nurse: Mark Sample Collected and forward to Lab
+  const handleCollectSubmit = async (e) => {
+    e.preventDefault();
+    if (!collectTest) return;
+    setCollecting(true);
     try {
-      await api.patch(`/lab-tests/${id}/collect`);
+      await api.patch(`/lab-tests/${collectTest._id}/collect`, collectForm);
+      setShowCollectModal(false);
+      setCollectTest(null);
+      setCollectForm({ specimenTypes: [], sampleNotes: "" });
       fetchLabTests();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to collect sample");
+    } finally {
+      setCollecting(false);
     }
   };
 
@@ -249,6 +276,7 @@ export default function LabTests() {
                 <tr>
                   <th className="px-6 py-4">Patient</th>
                   <th className="px-6 py-4">Test</th>
+                  <th className="px-6 py-4">Sample</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Doctor</th>
                   <th className="px-6 py-4">Date</th>
@@ -277,6 +305,9 @@ export default function LabTests() {
                         </div>
                       </td>
                       <td className="px-6 py-4 font-bold text-navyBlue-700 dark:text-navyBlue-200">{test.testName}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-navyBlue-500 dark:text-navyBlue-300">
+                        {test.specimenType || "Awaiting"}
+                      </td>
                       <td className="px-6 py-4"><StatusBadge status={test.status} /></td>
                       <td className="px-6 py-4 text-sm text-navyBlue-500 dark:text-navyBlue-400">{doctorName}</td>
                       <td className="px-6 py-4 text-sm text-navyBlue-400">{date}</td>
@@ -295,10 +326,21 @@ export default function LabTests() {
                           {/* Nurse: Collect Sample */}
                           {role === "Nurse" && test.status === "Pending Sample" && (
                             <button
-                              onClick={() => handleCollect(test._id)}
+                              onClick={() => {
+                                setCollectTest(test);
+                                setCollectForm({
+                                  specimenTypes: Array.isArray(test.specimenTypes) && test.specimenTypes.length
+                                    ? test.specimenTypes
+                                    : test.specimenType
+                                      ? test.specimenType.split(",").map((item) => item.trim()).filter(Boolean)
+                                      : [],
+                                  sampleNotes: test.sampleNotes || ""
+                                });
+                                setShowCollectModal(true);
+                              }}
                               className="flex items-center gap-1.5 rounded-xl bg-blue-500 px-3 py-1.5 text-xs font-black text-white transition-all hover:scale-105 hover:bg-blue-600"
                             >
-                              <Droplets size={13} /> Collect Sample
+                              <Droplets size={13} /> Forward
                             </button>
                           )}
 
@@ -395,10 +437,101 @@ export default function LabTests() {
                 />
               </div>
 
+              <div>
+                <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-navyBlue-400">Lab Fee</label>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  value={createForm.amount}
+                  onChange={(e) => setCreateForm({ ...createForm, amount: e.target.value })}
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-royalBlue focus:outline-none focus:ring-2 focus:ring-royalBlue/20"
+                />
+              </div>
+
               <div className="flex justify-end gap-3 pt-2">
                 <button type="button" onClick={() => setShowCreateModal(false)} className="rounded-full px-6 py-3 text-sm font-bold text-navyBlue-300 hover:text-white hover:bg-white/5">Cancel</button>
                 <button type="submit" disabled={creating} className="rounded-full bg-royalBlue px-8 py-3 text-sm font-black text-white shadow-lg shadow-royalBlue/30 hover:scale-105 active:scale-95 disabled:opacity-50 transition-transform">
                   {creating ? "Sending..." : "Send Request"}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>,
+        document.body
+      )}
+
+      {/* NURSE: Collect Sample Modal */}
+      {showCollectModal && collectTest && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="relative w-full max-w-md rounded-[32px] border border-white/10 bg-navyBlue-950 p-8 shadow-2xl"
+          >
+            <button onClick={() => setShowCollectModal(false)} className="absolute right-5 top-5 rounded-full p-2 text-navyBlue-300 hover:bg-white/10 hover:text-white">
+              <X size={20} />
+            </button>
+            <div className="mb-6 flex items-center gap-3">
+              <div className="rounded-2xl bg-blue-500/20 p-3">
+                <Droplets className="text-blue-400" size={24} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-white">Forward to Lab</h2>
+                <p className="text-xs text-navyBlue-400">{collectTest.testName} - {collectTest.patient?.name || collectTest.patient?.user?.name || "Patient"}</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCollectSubmit} className="space-y-4">
+              <div>
+                <label className="mb-2 block text-xs font-black uppercase tracking-wider text-navyBlue-400">Sample / Procedure Types</label>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {SPECIMEN_TYPES.map((type) => {
+                    const checked = collectForm.specimenTypes.includes(type);
+                    return (
+                      <label
+                        key={type}
+                        className={`flex cursor-pointer items-center gap-2 rounded-2xl border px-3 py-2.5 text-xs font-black transition ${
+                          checked
+                            ? "border-blue-500 bg-blue-500/20 text-white"
+                            : "border-white/10 bg-white/5 text-navyBlue-300 hover:bg-white/10"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            setCollectForm((prev) => ({
+                              ...prev,
+                              specimenTypes: checked
+                                ? prev.specimenTypes.filter((item) => item !== type)
+                                : [...prev.specimenTypes, type],
+                            }));
+                          }}
+                          className="h-4 w-4 rounded border-white/20 text-blue-500 focus:ring-blue-500"
+                        />
+                        {type}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-navyBlue-400">Nurse Notes</label>
+                <textarea
+                  rows={3}
+                  value={collectForm.sampleNotes}
+                  onChange={(e) => setCollectForm({ ...collectForm, sampleNotes: e.target.value })}
+                  placeholder="Sample condition, timing, or handoff notes..."
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-navyBlue-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setShowCollectModal(false)} className="rounded-full px-6 py-3 text-sm font-bold text-navyBlue-300 hover:text-white hover:bg-white/5">Cancel</button>
+                <button type="submit" disabled={collecting || collectForm.specimenTypes.length === 0} className="rounded-full bg-blue-600 px-8 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95 disabled:opacity-50 transition-transform">
+                  {collecting ? "Forwarding..." : "Send to Lab"}
                 </button>
               </div>
             </form>
@@ -426,6 +559,12 @@ export default function LabTests() {
                 <h2 className="text-xl font-black text-white">Upload Result</h2>
                 <p className="text-xs text-navyBlue-400">{selectedTest.testName} — {selectedTest.patient?.name || "Patient"}</p>
               </div>
+            </div>
+
+            <div className="mb-5 rounded-2xl bg-white/5 p-4">
+              <div className="text-xs font-black uppercase tracking-wider text-navyBlue-400">Nurse Handoff</div>
+              <div className="mt-2 text-sm font-bold text-white">{selectedTest.specimenType || "Sample forwarded"}</div>
+              {selectedTest.sampleNotes && <div className="mt-1 text-sm text-navyBlue-300">{selectedTest.sampleNotes}</div>}
             </div>
 
             <form onSubmit={handleUploadResult} className="space-y-4">
@@ -492,6 +631,11 @@ export default function LabTests() {
               <div className="rounded-2xl bg-white/5 p-4">
                 <div className="text-xs font-black uppercase tracking-wider text-navyBlue-400 mb-2">Lab Technician</div>
                 <div className="text-sm font-bold text-white">{viewTest.labTechnician?.name || "—"}</div>
+              </div>
+              <div className="rounded-2xl bg-white/5 p-4">
+                <div className="text-xs font-black uppercase tracking-wider text-navyBlue-400 mb-2">Sample / Procedure</div>
+                <div className="text-sm font-bold text-white">{viewTest.specimenType || "None"}</div>
+                {viewTest.sampleNotes && <div className="mt-2 text-sm text-navyBlue-300">{viewTest.sampleNotes}</div>}
               </div>
               {viewTest.resultText && (
                 <div className="rounded-2xl bg-white/5 p-4">

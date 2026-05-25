@@ -17,9 +17,16 @@ const labTestSchema = new mongoose.Schema(
     // Results
     resultText: { type: String, default: "" },
     resultFileUrl: { type: String, default: "" },
+    specimenType: { type: String, default: "" },
+    specimenTypes: [{ type: String }],
+    sampleNotes: { type: String, default: "" },
     
     labTechnician: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     nurse: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // The nurse who collected the sample
+    paymentConfirmedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    paymentConfirmedAt: Date,
+    sampleCollectedAt: Date,
+    resultUploadedAt: Date,
   },
   { timestamps: true }
 );

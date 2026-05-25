@@ -39,6 +39,7 @@ export default function BillingCheckout() {
   const [patients, setPatients] = useState([]);
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [unpaidBills, setUnpaidBills] = useState([]);
+  const [patientBillSummary, setPatientBillSummary] = useState({});
   const [selectedBillIds, setSelectedBillIds] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [loading, setLoading] = useState(false);
@@ -49,8 +50,39 @@ export default function BillingCheckout() {
 
   const fetchPatients = async () => {
     try {
-      const { data } = await api.get("/patients");
-      setPatients(data);
+      const [{ data: patientData }, { data: unpaidData }] = await Promise.all([
+        api.get("/patients"),
+        api.get("/bills?status=Unpaid"),
+      ]);
+
+      const summary = unpaidData.reduce((acc, bill) => {
+        const patientId = bill.patient?._id || bill.patient;
+        if (!patientId) return acc;
+
+        const createdAt = bill.createdAt ? new Date(bill.createdAt).getTime() : 0;
+        const existing = acc[patientId] || { count: 0, total: 0, latestAt: 0 };
+        acc[patientId] = {
+          count: existing.count + 1,
+          total: existing.total + Number(bill.amount || 0),
+          latestAt: Math.max(existing.latestAt, createdAt),
+        };
+        return acc;
+      }, {});
+
+      const sortedPatients = [...patientData].sort((a, b) => {
+        const aSummary = summary[a._id];
+        const bSummary = summary[b._id];
+        const aHasDue = Boolean(aSummary);
+        const bHasDue = Boolean(bSummary);
+
+        if (aHasDue && bHasDue) return bSummary.latestAt - aSummary.latestAt;
+        if (aHasDue) return -1;
+        if (bHasDue) return 1;
+        return (a.name || a.user?.name || "").localeCompare(b.name || b.user?.name || "");
+      });
+
+      setPatientBillSummary(summary);
+      setPatients(sortedPatients);
     } catch (error) {
       console.error("Error fetching patients:", error);
     }
@@ -108,6 +140,7 @@ export default function BillingCheckout() {
       // Clear selections and refresh
       setSelectedBillIds([]);
       fetchPatientBills(selectedPatientId);
+      fetchPatients();
     } catch (error) {
       console.error("Checkout failed:", error);
       alert(error.response?.data?.message || "Checkout failed");
@@ -136,6 +169,11 @@ export default function BillingCheckout() {
       case "Surgery": return <Stethoscope size={16} className="text-red-500" />;
       default: return <FileText size={16} className="text-gray-400" />;
     }
+  };
+
+  const formatBillDate = (date) => {
+    if (!date) return "Today";
+    return new Date(date).toLocaleDateString();
   };
 
   return (
@@ -188,6 +226,9 @@ export default function BillingCheckout() {
 
           <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
             {filteredPatients.map(p => (
+              (() => {
+                const due = patientBillSummary[p._id];
+                return (
               <button
                 key={p._id}
                 onClick={() => handlePatientSelect(p._id)}
@@ -211,9 +252,11 @@ export default function BillingCheckout() {
                 <div className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${
                   selectedPatientId === p._id ? "bg-white/20" : "bg-royalBlue-50/50 dark:bg-royalBlue-900/20"
                 }`}>
-                  {p.gender || "Stable"}
+                  {due ? `$${due.total}` : (p.gender || "Stable")}
                 </div>
               </button>
+                );
+              })()
             ))}
             {filteredPatients.length === 0 && (
               <div className="text-center py-10 text-royalBlue-400 text-sm">No matching patients identified.</div>
@@ -280,6 +323,14 @@ export default function BillingCheckout() {
                       </div>
                       <div>
                         <div className="text-sm font-black text-royalBlue-950 dark:text-white">{bill.itemName}</div>
+                        <div className="text-xs font-semibold text-royalBlue-400">
+                          Reason: <span className="font-extrabold text-royalBlue-500">{bill.itemType}</span>
+                          <span className="px-1">|</span>
+                          Ordered by {bill.orderedBy || "Clinical Staff"}
+                        </div>
+                        <div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-navyBlue-400">
+                          Date: {formatBillDate(bill.createdAt)}
+                        </div>
                         <div className="text-xs font-semibold text-royalBlue-400">By {bill.orderedBy} • Type: <span className="font-extrabold uppercase text-[10px]">{bill.itemType}</span></div>
                       </div>
                     </div>

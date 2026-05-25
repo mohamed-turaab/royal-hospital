@@ -12,6 +12,7 @@ import routes from "./routes/index.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.join(__dirname, "..", "public");
+const uploadsDir = path.join(__dirname, "..", "..", "uploads");
 
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
@@ -28,6 +29,7 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 app.use("/api", routes);
+app.use("/uploads", express.static(uploadsDir));
 app.use(express.static(publicDir, {
   setHeaders: (res, path) => {
     if (path.endsWith('.html')) {

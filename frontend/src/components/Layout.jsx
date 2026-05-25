@@ -543,10 +543,18 @@ export default function Layout() {
                         <h4 className="font-black text-base text-royalBlue-950 dark:text-white">Notifications</h4>
                         <span className="text-[10px] font-black text-royalBlue-400 uppercase tracking-widest">Clinical updates</span>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={clearNotifications}
+                          disabled={notifications.length === 0}
+                          className="text-[10px] font-black uppercase tracking-widest text-red-400 transition hover:text-red-500 hover:underline disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:no-underline"
+                        >
+                          {notifications.length > 1 ? "Clear All" : "Clear"}
+                        </button>
                         <button 
                           onClick={markAllRead} 
-                          className="text-[10px] font-black text-royalBlue uppercase tracking-widest hover:underline"
+                          disabled={notifications.length === 0}
+                          className="text-[10px] font-black text-royalBlue uppercase tracking-widest hover:underline disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:no-underline"
                         >
                           Read All
                         </button>
@@ -587,6 +595,20 @@ export default function Layout() {
                             <p className="text-[11px] font-bold text-royalBlue-900/80 dark:text-royalBlue-200/80 leading-relaxed">
                               {notif.body}
                             </p>
+                            {notif.link && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!notif.read) markOneRead(notif.id);
+                                  navigate(notif.link);
+                                  setShowNotifications(false);
+                                }}
+                                className="mt-3 rounded-xl bg-royalBlue px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white transition hover:bg-royalBlue-600"
+                              >
+                                View
+                              </button>
+                            )}
                           </div>
                         ))
                       )}

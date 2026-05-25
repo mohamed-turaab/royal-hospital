@@ -1,5 +1,6 @@
 import RevenueReport from "../models/RevenueReport.js";
 import User from "../models/User.js";
+import { createNotification } from "./notificationController.js";
 
 // @desc    Submit a new revenue report
 // @route   POST /api/revenue-reports
@@ -31,6 +32,15 @@ export const submitRevenueReport = async (req, res) => {
     });
 
     const savedReport = await newReport.save();
+
+    await createNotification({
+      roles: ["Admin"],
+      title: "Revenue Report Submitted",
+      body: `${user.name} submitted "${savedReport.title}" with revenue $${savedReport.totalRevenue.toLocaleString()}, expenses $${savedReport.totalExpenses.toLocaleString()}, net profit $${savedReport.netProfit.toLocaleString()}.`,
+      type: "info",
+      link: `/admin/dashboard?report=${savedReport._id}`,
+    });
+
     res.status(201).json(savedReport);
   } catch (error) {
     console.error("Error submitting revenue report:", error);

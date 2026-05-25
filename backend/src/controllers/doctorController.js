@@ -1,6 +1,7 @@
 import Doctor from "../models/Doctor.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
+import { createNotification } from "../controllers/notificationController.js";
 
 export async function listDoctors(req, res) {
   const doctors = await Doctor.find().populate("user", "name email role profileImage");
@@ -41,7 +42,14 @@ export async function createDoctor(req, res) {
     });
 
     const populatedDoctor = await Doctor.findById(doctor._id).populate("user", "name email role profileImage status");
-    res.status(201).json(populatedDoctor);
+    await createNotification({
+  roles: ["Receptionist"],
+  title: "New Doctor Registered",
+  body: `Doctor ${doctor.name} (${doctor.specialization}) has been added. Prepare billing.`,
+  type: "info",
+  link: "/reception/billing"
+});
+res.status(201).json(populatedDoctor);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

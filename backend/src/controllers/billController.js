@@ -3,6 +3,7 @@ import Patient from "../models/Patient.js";
 import User from "../models/User.js";
 import Prescription from "../models/Prescription.js";
 import Transaction from "../models/Transaction.js";
+import LabTest from "../models/LabTest.js";
 
 // @desc    Create a new manual bill (Lab Test, Surgery, Consultation, etc.)
 // @route   POST /api/bills
@@ -103,6 +104,16 @@ export const checkoutBills = async (req, res) => {
         if (prescription) {
           prescription.status = "Pending Pharmacy";
           await prescription.save();
+        }
+      }
+
+      if (bill.itemType === "Lab Test" && bill.referenceId) {
+        const labTest = await LabTest.findById(bill.referenceId);
+        if (labTest && labTest.status === "Pending Payment") {
+          labTest.status = "Pending Sample";
+          labTest.paymentConfirmedBy = receptionist._id;
+          labTest.paymentConfirmedAt = new Date();
+          await labTest.save();
         }
       }
     }

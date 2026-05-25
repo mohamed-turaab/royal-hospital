@@ -20,6 +20,17 @@ backend/public/assets/
 backend/public/vendor/
 backend/public/index.html
 
+# Runtime uploads
+uploads/**
+!uploads/.gitkeep
+!uploads/lab-results/
+!uploads/lab-results/.gitkeep
+backend/public/uploads/**
+!backend/public/uploads/
+!backend/public/uploads/.gitkeep
+!backend/public/uploads/reports/
+!backend/public/uploads/reports/.gitkeep
+
 # Local IDE and browser profiles
 .vscode/
 .idea/

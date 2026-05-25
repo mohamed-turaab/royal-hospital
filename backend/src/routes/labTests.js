@@ -19,7 +19,7 @@ router.use(protect);
 // GET all lab tests (role-filtered)
 router.get(
   "/",
-  roleGuard("Admin", "Doctor", "Nurse", "Receptionist", "Accountant", "Lab Technician", "Patient"),
+  roleGuard("Admin", "Doctor", "Nurse", "Lab Technician", "Patient"),
   getAllLabTests
 );
 

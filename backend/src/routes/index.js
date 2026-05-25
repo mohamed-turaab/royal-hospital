@@ -10,7 +10,7 @@ import reportRoutes from "./reportRoutes.js";
 import revenueReportRoutes from "./revenueReportRoutes.js";
 import transactionRoutes from "./transactionRoutes.js";
 import billRoutes from "./billRoutes.js";
-import labTestRoutes from "./labTests.js";
+import labTests from "./labTests.js";
 import notificationRoutes from "./notifications.js";
 
 const router = Router();
@@ -25,8 +25,7 @@ router.use("/reports", reportRoutes);
 router.use("/revenue-reports", revenueReportRoutes);
 router.use("/transactions", transactionRoutes);
 router.use("/bills", billRoutes);
-router.use("/lab-tests", labTestRoutes);
+router.use("/lab-tests", labTests);
 router.use("/notifications", notificationRoutes);
+
 export default router;
-
-

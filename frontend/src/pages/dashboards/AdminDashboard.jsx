@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Component } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Avatar from "../../components/Avatar";
 import { dashboardConfig, rolePath } from "../../config/roles";
 import api from "../../services/api";
@@ -95,6 +95,8 @@ function StatCard({ item, index }) {
 export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const openedReportLinkId = React.useRef("");
   const config = dashboardConfig.Admin;
   const [users, setUsers] = useState([]);
   const [analytics, setAnalytics] = useState(null);
@@ -123,7 +125,18 @@ export default function AdminDashboard() {
       ]);
       setUsers(usersRes.data);
       setAnalytics(analyticsRes.data);
-      setRevenueReports(reportsRes.data);
+      const reports = reportsRes.data || [];
+      setRevenueReports(reports);
+
+      const reportId = new URLSearchParams(location.search).get("report");
+      if (reportId && openedReportLinkId.current !== reportId) {
+        const report = reports.find((item) => item._id === reportId);
+        if (report) {
+          openedReportLinkId.current = reportId;
+          setSelectedReport(report);
+          setIsReportModalOpen(true);
+        }
+      }
     } catch (error) {
       console.error("Dashboard fetch error:", error);
     }
@@ -143,7 +156,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+    const interval = setInterval(fetchDashboardData, 5000);
+    return () => clearInterval(interval);
+  }, [location.search]);
 
   const handleSaveUser = async (e) => {
     e.preventDefault();
@@ -307,6 +322,7 @@ export default function AdminDashboard() {
           ))
         )}
       </div>
+
       {/* Users Table */}
       <motion.section variants={itemVariants} className="table-container">
         <div className="flex flex-col gap-6 border-b border-royalBlue-100 p-10 sm:flex-row sm:items-center sm:justify-between dark:border-royalBlue-800">
@@ -551,6 +567,79 @@ export default function AdminDashboard() {
               </button>
             </div>
           </div>
+        </div>,
+        document.body
+      )}
+
+      {isReportModalOpen && selectedReport && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="relative w-full max-w-2xl rounded-[32px] border border-white/10 bg-navyBlue-950 p-8 shadow-2xl"
+          >
+            <button
+              onClick={() => {
+                setIsReportModalOpen(false);
+                setSelectedReport(null);
+              }}
+              className="absolute right-6 top-6 rounded-full p-2 text-royalBlue-300 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="mb-6 flex items-start gap-4">
+              <div className="rounded-2xl bg-royalBlue/20 p-3 text-royalBlue">
+                <FileText size={26} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-white">{selectedReport.title}</h2>
+                <p className="mt-1 text-sm font-bold text-royalBlue-300">
+                  Submitted by {selectedReport.reporterName} | {new Date(selectedReport.createdAt).toLocaleString()}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                ["Revenue", selectedReport.totalRevenue],
+                ["Expenses", selectedReport.totalExpenses],
+                ["Net Profit", selectedReport.netProfit],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-2xl bg-white/5 p-4">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-royalBlue-400">{label}</div>
+                  <div className="mt-1 text-2xl font-black text-white">${Number(value || 0).toLocaleString()}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 rounded-2xl bg-white/5 p-4">
+              <div className="text-[10px] font-black uppercase tracking-widest text-royalBlue-400">Pending Invoices</div>
+              <div className="mt-1 text-lg font-black text-white">{selectedReport.pendingInvoices}</div>
+            </div>
+
+            {selectedReport.notes && (
+              <div className="mt-4 rounded-2xl bg-white/5 p-4">
+                <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-royalBlue-400">Notes</div>
+                <p className="whitespace-pre-wrap text-sm font-semibold leading-relaxed text-royalBlue-100">{selectedReport.notes}</p>
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:justify-end">
+              <button
+                onClick={() => handleReportStatusUpdate(selectedReport._id, "Rejected")}
+                className="rounded-full border border-red-500/30 px-6 py-3 text-sm font-black text-red-400 transition hover:bg-red-500 hover:text-white"
+              >
+                Reject
+              </button>
+              <button
+                onClick={() => handleReportStatusUpdate(selectedReport._id, "Approved")}
+                className="rounded-full bg-green-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-green-600/20 transition hover:bg-green-500"
+              >
+                Approve
+              </button>
+            </div>
+          </motion.div>
         </div>,
         document.body
       )}

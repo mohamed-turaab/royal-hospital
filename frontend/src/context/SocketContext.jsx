@@ -35,11 +35,15 @@ export function SocketProvider({ children }) {
     }
   }, []);
 
-  // Poll every 20 seconds for new notifications
+  // Poll frequently so role handoffs appear without a page reload.
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 20000);
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchNotifications, 5000);
+    window.addEventListener("focus", fetchNotifications);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", fetchNotifications);
+    };
   }, [fetchNotifications]);
 
   const triggerEmergencyMock = (message, location) => {
