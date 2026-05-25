@@ -25,7 +25,14 @@ export default function Login() {
       const user = await login(form);
       navigate(rolePath(user.role));
     } catch (err) {
-      alert("Invalid credentials. Please try again.");
+      const message =
+        err?.response?.data?.message ||
+        (err?.response?.status === 404
+          ? "Login API not found. Check the backend URL."
+          : err?.code === "ERR_NETWORK"
+            ? "Cannot reach the server. Check backend deployment."
+            : "Login failed. Please try again.");
+      alert(message);
     }
   };
 
