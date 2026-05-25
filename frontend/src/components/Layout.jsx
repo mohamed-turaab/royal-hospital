@@ -173,7 +173,7 @@ export default function Layout() {
               initial={{ scale: 0.9, y: 30 }}
               animate={{ scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } }}
               exit={{ scale: 0.9, y: 30 }}
-              className="relative w-full max-w-2xl overflow-hidden rounded-[40px] border border-red-500/30 bg-red-950/80 p-10 text-center text-white shadow-[0_0_80px_rgba(239,68,68,0.4)] backdrop-blur-3xl"
+              className="relative w-full max-w-2xl overflow-hidden rounded-[28px] sm:rounded-[40px] border border-red-500/30 bg-red-950/80 p-5 sm:p-10 text-center text-white shadow-[0_0_80px_rgba(239,68,68,0.4)] backdrop-blur-3xl"
             >
               <div className="absolute top-6 right-6">
                 <button 
@@ -189,15 +189,15 @@ export default function Layout() {
                 <ShieldAlert size={48} className="text-white" />
               </div>
 
-              <h2 className="mb-2 text-3xl font-black uppercase tracking-[0.2em] text-red-500">
+              <h2 className="mb-2 text-2xl sm:text-3xl font-black uppercase tracking-[0.12em] sm:tracking-[0.2em] text-red-500">
                 Code Red Emergency
               </h2>
               <p className="mb-8 text-xs font-bold uppercase tracking-widest text-red-400">
                 Real-Time Hospital Broadcast Alert
               </p>
 
-              <div className="mb-10 rounded-3xl border border-red-500/20 bg-red-900/40 p-6 text-left">
-                <div className="flex gap-4 items-start">
+              <div className="mb-8 sm:mb-10 rounded-3xl border border-red-500/20 bg-red-900/40 p-4 sm:p-6 text-left">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                   <HeartCrack size={32} className="text-red-500 shrink-0 mt-1" />
                   <div>
                     <div className="text-lg font-black tracking-tight text-white mb-1">
@@ -247,7 +247,7 @@ export default function Layout() {
       {/* Sidebar */}
       <motion.aside
         animate={{ width: sidebarOpen ? 300 : 96 }}
-        className={`sidebar-glass fixed bottom-0 left-0 top-0 z-50 flex flex-col p-6 transition-all duration-500 lg:static lg:translate-x-0 ${
+        className={`sidebar-glass fixed bottom-0 left-0 top-0 z-50 flex max-w-[86vw] flex-col p-5 sm:p-6 transition-all duration-500 lg:static lg:max-w-none lg:translate-x-0 ${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -445,8 +445,8 @@ export default function Layout() {
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col overflow-hidden relative">
         {/* Top Navbar */}
-        <header className="navbar-glass sticky top-0 z-30 flex items-center justify-between px-6 py-4 lg:px-10">
-          <div className="flex items-center gap-6">
+        <header className="navbar-glass sticky top-0 z-30 flex min-w-0 items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-4 lg:px-10">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-6">
             <button
               onClick={() => setMobileSidebarOpen(true)}
               aria-label="Open Navigation Menu"
@@ -504,7 +504,7 @@ export default function Layout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 lg:gap-6 relative">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-4 lg:gap-6 relative">
             {/* Real-time socket online status pill removed per user request */}
 
             <button
@@ -536,7 +536,7 @@ export default function Layout() {
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
                 <div
-                  className="absolute right-0 top-16 z-50 w-[380px] overflow-hidden rounded-[32px] border border-royalBlue-100/10 bg-white dark:bg-navyBlue-900 shadow-2xl p-6 backdrop-blur-2xl animate-fade-in-up"
+                  className="fixed left-3 right-3 top-20 z-50 max-h-[calc(100dvh-6rem)] overflow-hidden rounded-[24px] border border-royalBlue-100/10 bg-white p-4 shadow-2xl backdrop-blur-2xl animate-fade-in-up dark:bg-navyBlue-900 sm:absolute sm:left-auto sm:right-0 sm:top-16 sm:w-[380px] sm:rounded-[32px] sm:p-6"
                 >
                     <div className="flex justify-between items-center pb-4 border-b border-royalBlue-100/10 mb-4">
                       <div>
@@ -561,7 +561,7 @@ export default function Layout() {
                       </div>
                     </div>
 
-                    <div className="space-y-3.5 max-h-[300px] overflow-y-auto custom-scrollbar">
+                    <div className="space-y-3.5 max-h-[50dvh] overflow-y-auto custom-scrollbar sm:max-h-[300px]">
                       {notifications.length === 0 ? (
                         <div className="text-center py-8 text-xs font-semibold text-royalBlue-400">
                           No notifications at the moment.

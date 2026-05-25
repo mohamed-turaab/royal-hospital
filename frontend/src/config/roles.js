@@ -41,14 +41,14 @@ export const sidebarNav = [
   { label: "Doctors", to: "doctors", icon: Stethoscope, roles: ["Admin"] },
   { label: "Nurses", to: "nurses", icon: HeartPulse, roles: ["Admin"] },
   { label: "Appointments", to: "appointments", icon: Calendar, roles: ["Admin", "Doctor", "Nurse", "Receptionist", "Patient"] },
-  { label: "Rooms", to: "rooms", icon: DoorOpen, roles: ["Admin", "Receptionist", "Doctor", "Nurse"] },
+  { label: "Rooms", to: "rooms", icon: DoorOpen, roles: ["Admin"] },
   { label: "Prescriptions", to: "prescriptions", icon: ClipboardPlus, roles: ["Admin", "Doctor", "Patient"] },
   { label: "Pharmacists", to: "pharmacy", icon: Pill, roles: ["Admin"] },
   { label: "Billing", to: "billing", icon: CreditCard, roles: ["Admin", "Receptionist"] },
   { label: "Reports", to: "reports", icon: BarChart3, roles: ["Admin", "Doctor", "Nurse", "Pharmacist", "Accountant"] },
+  { label: "Lab Tests", to: "lab-tests", icon: Activity, roles: ["Admin", "Doctor", "Nurse", "Lab Technician", "Patient"] },
   { label: "Analytics", to: "analytics", icon: TrendingUp, roles: ["Admin"] },
   { label: "Settings", to: "profile", icon: Settings, roles: APP_ROLES },
-  { label: "Lab Tests", to: "lab-tests", icon: Activity, roles: ["Admin", "Doctor", "Nurse", "Lab Technician", "Patient"] },
 ];
 
 const sharedPanels = [

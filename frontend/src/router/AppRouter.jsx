@@ -100,8 +100,12 @@ function SectionRouteWrapper() {
     return <BillingCheckout />;
   }
 
-  if (section === "rooms") {
+  if (section === "rooms" && role === "admin") {
     return <Rooms />;
+  }
+
+  if (section === "rooms") {
+    return <Navigate to={rolePath(role)} replace />;
   }
 
   if (role === "pharmacist") {

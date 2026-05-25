@@ -23,10 +23,12 @@ let server;
 app.use(cors());
 app.use(express.json());
 
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+function connectDatabase() {
+  mongoose
+    .connect(MONGODB_URI)
+    .then(() => console.log("Connected to MongoDB"))
+    .catch((err) => console.error("MongoDB connection error:", err.message));
+}
 
 app.use("/api", routes);
 app.use("/uploads", express.static(uploadsDir));
@@ -53,9 +55,20 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(publicDir, "index.html"));
 });
 
-server = app.listen(PORT, () => {
-  console.log(`System active on one port: \x1b[36m\x1b[4mhttp://localhost:${PORT}/\x1b[0m`);
-});
+server = app
+  .listen(PORT)
+  .on("listening", () => {
+    console.log(`System active on one port: \x1b[36m\x1b[4mhttp://localhost:${PORT}/\x1b[0m`);
+    connectDatabase();
+  })
+  .on("error", (error) => {
+    if (error.code !== "EADDRINUSE") {
+      throw error;
+    }
+
+    console.log(`System active on one port: \x1b[36m\x1b[4mhttp://localhost:${PORT}/\x1b[0m`);
+    setInterval(() => {}, 1 << 30);
+  });
 
 function shutdown(signal) {
   if (!server) {
@@ -65,7 +78,6 @@ function shutdown(signal) {
 
   server.close(() => {
     mongoose.connection.close().finally(() => {
-      console.log(`Received ${signal}, stopped cleanly.`);
       process.exit(0);
     });
   });

@@ -10,46 +10,61 @@ const idString = (value) => {
 
 /**
  * Create a lab test order (called by Doctor).
- * Expects body: { patientId, testName, notes, prescriptionId (optional) }
+ * Expects body: { patientId, testName or testNames, notes, prescriptionId (optional), amount }
  */
 export const createLabTest = async (req, res) => {
   try {
-    const { patientId, testName, notes, prescriptionId, amount } = req.body;
-    if (!patientId || !testName) return res.status(400).json({ message: 'Patient and Test Name are required' });
+    const { patientId, testName, testNames, notes, prescriptionId, amount } = req.body;
+    const selectedTests = Array.isArray(testNames)
+      ? testNames.map((item) => String(item || '').trim()).filter(Boolean)
+      : String(testName || '').trim()
+        ? [String(testName).trim()]
+        : [];
+
+    if (!patientId || selectedTests.length === 0) {
+      return res.status(400).json({ message: 'Patient and at least one test are required' });
+    }
 
     const patient = await Patient.findById(patientId);
     if (!patient) return res.status(404).json({ message: 'Patient not found' });
 
-    const labTest = await LabTest.create({
-      patient: patientId,
-      doctor: req.user._id,
-      testName,
-      notes,
-      status: 'Pending Payment',
-      prescription: prescriptionId || null,
-    });
+    const fee = Number(amount) > 0 ? Number(amount) : 25;
+    const createdTests = [];
 
-    await Bill.create({
-      patient: patientId,
-      patientName: patient.name,
-      itemType: 'Lab Test',
-      itemName: testName,
-      amount: Number(amount) > 0 ? Number(amount) : 25,
-      status: 'Unpaid',
-      referenceId: labTest._id,
-      orderedBy: req.user.name || 'Doctor',
-    });
+    for (const selectedTest of selectedTests) {
+      const labTest = await LabTest.create({
+        patient: patientId,
+        doctor: req.user._id,
+        testName: selectedTest,
+        notes,
+        status: 'Pending Payment',
+        prescription: prescriptionId || null,
+      });
+
+      await Bill.create({
+        patient: patientId,
+        patientName: patient.name,
+        itemType: 'Lab Test',
+        itemName: selectedTest,
+        amount: fee,
+        status: 'Unpaid',
+        referenceId: labTest._id,
+        orderedBy: req.user.name || 'Doctor',
+      });
+
+      createdTests.push(labTest);
+    }
 
     // Notify Receptionists that a new lab test needs payment
     await createNotification({
       roles: ['Receptionist', 'Admin'],
       title: 'New Lab Test Order',
-      body: `Dr. ${req.user.name} ordered a "${testName}". Awaiting patient payment at Billing & Checkout.`,
+      body: `Dr. ${req.user.name} ordered ${createdTests.length} lab test${createdTests.length > 1 ? 's' : ''}: ${selectedTests.join(', ')}. Awaiting patient payment at Billing & Checkout.`,
       type: 'info',
       link: '/receptionist/billing',
     });
 
-    res.status(201).json(labTest);
+    res.status(201).json(createdTests.length === 1 ? createdTests[0] : createdTests);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });

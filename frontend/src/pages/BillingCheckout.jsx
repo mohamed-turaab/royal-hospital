@@ -181,7 +181,7 @@ export default function BillingCheckout() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-10"
+      className="space-y-6 sm:space-y-10"
     >
       {/* Hero Section */}
       <motion.section 
@@ -191,12 +191,12 @@ export default function BillingCheckout() {
         <div className="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-royalBlue/20 to-transparent blur-3xl opacity-50" />
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-royalYellow/10 rounded-full blur-[100px]" />
         
-        <div className="relative z-10 flex flex-col lg:flex-row justify-between gap-8 lg:gap-12">
+        <div className="relative z-10 flex min-w-0 flex-col justify-between gap-8 lg:flex-row lg:gap-12">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-3 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white/10 border border-white/20 text-royalYellow text-[10px] font-black uppercase tracking-[0.3em] mb-6 sm:mb-8 backdrop-blur-md">
+            <div className="inline-flex max-w-full items-center gap-3 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white/10 border border-white/20 text-royalYellow text-[10px] font-black uppercase tracking-[0.12em] sm:tracking-[0.3em] mb-6 sm:mb-8 backdrop-blur-md">
               <ShieldCheck size={16} /> Checkout & Register Till
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter mb-4 sm:mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-normal mb-4 sm:mb-6">
               Billing & Checkout
             </h1>
             <p className="text-royalBlue-200/80 text-base sm:text-xl leading-relaxed max-w-xl">
@@ -207,10 +207,10 @@ export default function BillingCheckout() {
       </motion.section>
 
       {/* Main Billing Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         
         {/* Patient Selection Column */}
-        <motion.div variants={itemVariants} className="panel p-8">
+        <motion.div variants={itemVariants} className="panel p-4 sm:p-8">
           <h2 className="text-xl font-black text-royalBlue-900 dark:text-white mb-6">Find Patient</h2>
           
           <div className="relative group mb-6">
@@ -232,20 +232,20 @@ export default function BillingCheckout() {
               <button
                 key={p._id}
                 onClick={() => handlePatientSelect(p._id)}
-                className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left ${
+                className={`w-full flex flex-col gap-3 p-4 rounded-2xl border transition-all text-left sm:flex-row sm:items-center sm:justify-between ${
                   selectedPatientId === p._id
                     ? "bg-royalBlue text-white border-royalBlue shadow-lg shadow-royalBlue/20"
                     : "border-royalBlue-50 hover:bg-royalBlue-50/50 dark:border-royalBlue-800/40 dark:hover:bg-royalBlue-900/10 text-royalBlue-950 dark:text-white"
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex min-w-0 items-center gap-3">
                   <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-bold ${
                     selectedPatientId === p._id ? "bg-white/20 text-white" : "bg-royalBlue/10 text-royalBlue"
                   }`}>
                     <UserRound size={18} />
                   </div>
-                  <div>
-                    <div className="text-sm font-black truncate max-w-[120px]">{p.name || p.user?.name}</div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-black truncate sm:max-w-[120px]">{p.name || p.user?.name}</div>
                     <div className={`text-[10px] ${selectedPatientId === p._id ? "text-royalBlue-200" : "text-royalBlue-400"}`}>ID: {p._id.slice(-6).toUpperCase()}</div>
                   </div>
                 </div>
@@ -265,9 +265,9 @@ export default function BillingCheckout() {
         </motion.div>
 
         {/* Checkout List Column */}
-        <motion.div variants={itemVariants} className="lg:col-span-2 panel p-8 flex flex-col justify-between">
+        <motion.div variants={itemVariants} className="lg:col-span-2 panel p-4 sm:p-8 flex min-w-0 flex-col justify-between">
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col gap-2 mb-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-2xl font-black text-royalBlue-900 dark:text-white">Unpaid Ledger</h2>
                 <p className="text-sm font-semibold text-royalBlue-400 mt-1">Pending charges ready for checkout.</p>
@@ -300,18 +300,18 @@ export default function BillingCheckout() {
                 <p className="text-royalBlue-400 text-sm">All invoices paid! Patient has no outstanding charges.</p>
               </div>
             ) : (
-              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 mb-6">
+              <div className="space-y-4 max-h-[360px] overflow-y-auto pr-1 sm:pr-2 mb-6">
                 {unpaidBills.map((bill) => (
                   <div 
                     key={bill._id} 
                     onClick={() => handleToggleBillSelection(bill._id)}
-                    className={`flex items-center justify-between p-5 rounded-3xl border transition-all cursor-pointer ${
+                    className={`flex flex-col gap-4 p-4 sm:p-5 rounded-3xl border transition-all cursor-pointer md:flex-row md:items-center md:justify-between ${
                       selectedBillIds.includes(bill._id)
                         ? "bg-royalBlue/5 border-royalBlue"
                         : "border-royalBlue-50 dark:border-royalBlue-800/40 hover:bg-royalBlue-50/20 dark:hover:bg-royalBlue-900/10"
                     }`}
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex min-w-0 items-start gap-3 sm:gap-4">
                       <input 
                         type="checkbox" 
                         checked={selectedBillIds.includes(bill._id)}
@@ -321,8 +321,8 @@ export default function BillingCheckout() {
                       <div className="h-11 w-11 rounded-2xl bg-royalBlue/10 flex items-center justify-center shrink-0">
                         {getItemIcon(bill.itemType)}
                       </div>
-                      <div>
-                        <div className="text-sm font-black text-royalBlue-950 dark:text-white">{bill.itemName}</div>
+                      <div className="min-w-0">
+                        <div className="break-words text-sm font-black text-royalBlue-950 dark:text-white">{bill.itemName}</div>
                         <div className="text-xs font-semibold text-royalBlue-400">
                           Reason: <span className="font-extrabold text-royalBlue-500">{bill.itemType}</span>
                           <span className="px-1">|</span>
@@ -352,7 +352,7 @@ export default function BillingCheckout() {
                   <div className="text-4xl font-black text-royalBlue-900 dark:text-white mt-1">${totalAmount.toLocaleString()}</div>
                 </div>
 
-                <div className="flex items-center gap-2 rounded-2xl border border-navyBlue-100 bg-white p-1.5 dark:border-navyBlue-800 dark:bg-navyBlue-900/40 shadow-sm">
+                <div className="grid w-full grid-cols-1 gap-2 rounded-2xl border border-navyBlue-100 bg-white p-1.5 shadow-sm dark:border-navyBlue-800 dark:bg-navyBlue-900/40 sm:w-auto sm:grid-cols-3">
                   {[
                     { label: "Cash", icon: Wallet },
                     { label: "Card", icon: CreditCard },
@@ -362,7 +362,7 @@ export default function BillingCheckout() {
                       key={m.label}
                       type="button"
                       onClick={() => setPaymentMethod(m.label)}
-                      className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all ${
+                      className={`flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all ${
                         paymentMethod === m.label 
                           ? "bg-royalBlue text-white shadow-md shadow-royalBlue/30" 
                           : "text-royalBlue-400 hover:text-royalBlue dark:text-navyBlue-300 dark:hover:text-white hover:bg-navyBlue-50/50"

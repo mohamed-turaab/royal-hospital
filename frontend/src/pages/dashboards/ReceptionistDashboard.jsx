@@ -309,15 +309,22 @@ export default function ReceptionistDashboard() {
               </div>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="min-w-[820px] w-full table-fixed text-left border-collapse">
+              <colgroup>
+                <col className="w-[22%]" />
+                <col className="w-[24%]" />
+                <col className="w-[16%]" />
+                <col className="w-[18%]" />
+                <col className="w-[20%]" />
+              </colgroup>
               <thead>
                 <tr className="bg-royalBlue-50/30 dark:bg-royalBlue-900/10">
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-royalBlue-400">Patient Identity</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-royalBlue-400">Assigned Doctor</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-royalBlue-400">Time Block</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-royalBlue-400">Status</th>
-                  <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-royalBlue-400 text-right">Action</th>
+                  <th className="px-5 py-4 text-[10px] font-black uppercase tracking-widest text-royalBlue-400 whitespace-nowrap">Patient Identity</th>
+                  <th className="px-5 py-4 text-[10px] font-black uppercase tracking-widest text-royalBlue-400 whitespace-nowrap">Assigned Doctor</th>
+                  <th className="px-5 py-4 text-[10px] font-black uppercase tracking-widest text-royalBlue-400 whitespace-nowrap">Time Block</th>
+                  <th className="px-5 py-4 text-[10px] font-black uppercase tracking-widest text-royalBlue-400 whitespace-nowrap">Status</th>
+                  <th className="px-5 py-4 text-[10px] font-black uppercase tracking-widest text-royalBlue-400 text-right whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-royalBlue-50 dark:divide-royalBlue-800/50">
@@ -336,21 +343,21 @@ export default function ReceptionistDashboard() {
                     const timeString = new Date(app.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     return (
                       <tr key={app._id} className="hover:bg-royalBlue-50/50 dark:hover:bg-royalBlue-900/10 transition-colors">
-                        <td className="px-8 py-6">
-                          <div className="font-black text-base text-royalBlue-900 dark:text-white">{pName}</div>
+                        <td className="px-5 py-5">
+                          <div className="truncate whitespace-nowrap font-black text-base text-royalBlue-900 dark:text-white">{pName}</div>
                         </td>
-                        <td className="px-8 py-6">
-                          <div className="text-sm font-semibold text-royalBlue-600 dark:text-royalBlue-300">{dName}</div>
+                        <td className="px-5 py-5">
+                          <div className="truncate whitespace-nowrap text-sm font-semibold text-royalBlue-600 dark:text-royalBlue-300">{dName}</div>
                         </td>
-                        <td className="px-8 py-6 text-sm font-black text-royalBlue-500">{timeString}</td>
-                        <td className="px-8 py-6">
+                        <td className="px-5 py-5 whitespace-nowrap text-sm font-black text-royalBlue-500">{timeString}</td>
+                        <td className="px-5 py-5">
                           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${
                             statusColors[app.status] || "bg-gray-400 text-white"
                           }`}>
                             {app.status}
                           </span>
                         </td>
-                        <td className="px-8 py-6 text-right">
+                        <td className="px-5 py-5 text-right">
                           <div className="relative">
                             <button
                               onClick={() => setOpenActionMenu(openActionMenu === i ? null : i)}

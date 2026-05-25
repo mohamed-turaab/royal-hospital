@@ -8,6 +8,26 @@
     background-color: #f8fafc;
     color: #071B34;
     min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  html,
+  #root {
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
   }
   
   html.dark body {
@@ -52,6 +72,10 @@
   .table-container {
     @apply overflow-hidden rounded-[20px] sm:rounded-[24px] border border-navyBlue-100 bg-white dark:border-navyBlue-800 dark:bg-navyBlue-900/40 dark:backdrop-blur-xl;
   }
+
+  .mobile-card {
+    @apply rounded-2xl border border-navyBlue-100 bg-white p-4 shadow-sm dark:border-navyBlue-800 dark:bg-navyBlue-900/40;
+  }
 }
 
 .animate-fade-in {
@@ -74,6 +98,115 @@
 .table-scroll-wrapper {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Project-wide responsive guardrails */
+.app-shell,
+.app-shell main,
+.app-shell main > div,
+.panel,
+.stat-card {
+  min-width: 0;
+}
+
+.app-shell table {
+  min-width: 720px;
+}
+
+.app-shell th,
+.app-shell td {
+  white-space: nowrap;
+}
+
+.app-shell input,
+.app-shell select,
+.app-shell textarea,
+.app-shell button {
+  max-width: 100%;
+}
+
+@media (max-width: 1023px) {
+  .app-shell {
+    min-height: 100dvh;
+    height: 100dvh;
+  }
+}
+
+@media (max-width: 767px) {
+  .app-shell main {
+    padding: 1rem !important;
+  }
+
+  .panel,
+  .stat-card {
+    border-radius: 1.25rem !important;
+  }
+
+  .panel {
+    padding: 1rem !important;
+  }
+
+  .app-shell h1 {
+    font-size: clamp(1.8rem, 9vw, 2.8rem) !important;
+    line-height: 1.05 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .app-shell h2 {
+    font-size: clamp(1.25rem, 6vw, 1.7rem) !important;
+    line-height: 1.15 !important;
+  }
+
+  .app-shell [class*="tracking-[0.3em]"],
+  .app-shell [class*="tracking-[0.25em]"],
+  .app-shell [class*="tracking-[0.2em]"] {
+    letter-spacing: 0.08em !important;
+  }
+
+  .app-shell input,
+  .app-shell select,
+  .app-shell textarea {
+    font-size: 16px;
+  }
+
+  .app-shell [class~="min-w-[300px]"],
+  .app-shell [class~="min-w-[400px]"],
+  .app-shell [class~="md:min-w-[400px]"] {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .app-shell [class~="p-10"],
+  .app-shell [class~="p-8"] {
+    padding: 1rem !important;
+  }
+
+  .app-shell .btn-primary,
+  .app-shell .btn-secondary {
+    width: 100%;
+    min-height: 44px;
+    white-space: normal;
+  }
+
+  .app-shell table {
+    min-width: 680px;
+  }
+
+  .app-shell th,
+  .app-shell td {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-shell main {
+    padding: 0.75rem !important;
+  }
+
+  .app-shell table {
+    min-width: 620px;
+  }
 }
 
 @media print {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import Avatar from "../../components/Avatar";
+import api from "../../services/api";
 import { 
   Users, 
   ClipboardList, 
@@ -39,6 +40,9 @@ const itemVariants = {
 export default function NurseDashboard() {
   const { user } = useAuth();
   const [now, setNow] = useState(new Date());
+  const [patients, setPatients] = useState([]);
+  const [meds, setMeds] = useState([]);
+  const [loadingWard, setLoadingWard] = useState(true);
 
   // Real-time clock
   useEffect(() => {
@@ -46,21 +50,68 @@ export default function NurseDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  const [patients, setPatients] = useState([
-    { name: "Ali Hassan", room: "302-A", status: "Stable", vitals: { heart: 72, temp: 36.6, bp: "120/80" }, priority: "low" },
-    { name: "Faduma Omar", room: "205-B", status: "Monitoring", vitals: { heart: 88, temp: 38.2, bp: "135/90" }, priority: "medium" },
-    { name: "Abdi Gure", room: "ICU-04", status: "Critical", vitals: { heart: 110, temp: 39.1, bp: "145/95" }, priority: "high" },
-  ]);
+  useEffect(() => {
+    const buildWardRounds = async () => {
+      try {
+        setLoadingWard(true);
+        const [{ data: roomsData }, { data: prescriptionData }] = await Promise.all([
+          api.get("/rooms"),
+          api.get("/prescriptions"),
+        ]);
 
-  const [meds, setMeds] = useState([
-    { id: 1, time: "10:00 AM", patient: "Ali Hassan", med: "Amoxicillin - 500mg", status: "pending" },
-    { id: 2, time: "11:30 AM", patient: "Faduma Omar", med: "Paracetamol - 1000mg", status: "pending" },
-    { id: 3, time: "12:00 PM", patient: "Hassan Nur", med: "Insulin Injection", status: "completed" },
-  ]);
+        const occupiedRooms = (Array.isArray(roomsData) ? roomsData : [])
+          .filter((room) => room.status === "Occupied" && room.currentPatient);
+
+        const activePatients = occupiedRooms.map((room, index) => {
+          const patient = room.currentPatient;
+          const isIcu = room.type === "ICU";
+          return {
+            id: patient._id,
+            name: patient.name || "Unknown Patient",
+            room: room.roomNumber,
+            status: isIcu ? "Critical" : "Admitted",
+            vitals: {
+              heart: isIcu ? 106 : 72 + (index * 7) % 18,
+              temp: isIcu ? 38.7 : 36.5 + ((index % 3) * 0.3),
+              bp: isIcu ? "145/95" : "120/80",
+            },
+            priority: isIcu ? "high" : "low",
+          };
+        });
+
+        const admittedPatientIds = new Set(activePatients.map((patient) => patient.id));
+        const nextMeds = (Array.isArray(prescriptionData) ? prescriptionData : [])
+          .filter((prescription) => admittedPatientIds.has(prescription.patient?._id))
+          .flatMap((prescription, prescriptionIndex) =>
+            (prescription.medicines || []).map((medicine, medicineIndex) => ({
+              id: `${prescription._id}-${medicineIndex}`,
+              time: new Date(Date.now() + (prescriptionIndex + medicineIndex) * 45 * 60 * 1000)
+                .toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+              patient: prescription.patient?.name || prescription.patientName || "Unknown Patient",
+              med: `${medicine.name || "Medicine"}${medicine.dosage ? ` - ${medicine.dosage}` : ""}`,
+              status: "pending",
+            }))
+          );
+
+        setPatients(activePatients);
+        setMeds(nextMeds);
+      } catch (error) {
+        console.error("Error loading admitted patients for nurse dashboard:", error);
+        setPatients([]);
+        setMeds([]);
+      } finally {
+        setLoadingWard(false);
+      }
+    };
+
+    buildWardRounds();
+  }, []);
 
   const handleConfirmMed = (id) => {
     setMeds(meds.map(m => m.id === id ? { ...m, status: "completed" } : m));
   };
+
+  const pendingMedicationCount = meds.filter((m) => m.status !== "completed").length;
 
   return (
     <motion.div 
@@ -93,7 +144,7 @@ export default function NurseDashboard() {
               Hello, <span className="text-royalBlue-400">Nurse {user?.name?.split(' ')[1] || 'Hodan'}</span>
             </h1>
             <p className="text-xl text-royalBlue-200/80 leading-relaxed max-w-xl">
-              Ward 03 is currently at <span className="text-white font-black">85% capacity</span>. You have <span className="text-white font-black">4 medication rounds</span> remaining for your shift.
+              Ward patients are loaded from occupied hospital rooms. You have <span className="text-white font-black">{pendingMedicationCount} medication rounds</span> remaining for your shift.
             </p>
           </div>
 
@@ -103,7 +154,7 @@ export default function NurseDashboard() {
               <div className="text-[10px] font-black uppercase tracking-wider text-royalBlue-300">Remaining Shift</div>
             </div>
             <div className="p-6 rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-2xl text-center min-w-[150px] shadow-2xl">
-              <div className="text-4xl font-black text-green-400 mb-1">12</div>
+              <div className="text-4xl font-black text-green-400 mb-1">{patients.length}</div>
               <div className="text-[10px] font-black uppercase tracking-wider text-royalBlue-300">Patients Active</div>
             </div>
           </motion.div>
@@ -140,7 +191,15 @@ export default function NurseDashboard() {
               <button className="text-royalBlue font-black text-sm hover:underline focus-visible:ring-4 focus-visible:ring-royalBlue/20 outline-none rounded-lg px-2 py-1">View Ward Map</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {patients.map((p, i) => (
+              {loadingWard ? (
+                <div className="col-span-full rounded-3xl border border-royalBlue-100/30 bg-royalBlue-50/50 p-8 text-center text-sm font-bold text-royalBlue-400 dark:border-royalBlue-800 dark:bg-royalBlue-900/20">
+                  Loading admitted patients...
+                </div>
+              ) : patients.length === 0 ? (
+                <div className="col-span-full rounded-3xl border border-royalBlue-100/30 bg-royalBlue-50/50 p-8 text-center text-sm font-bold text-royalBlue-400 dark:border-royalBlue-800 dark:bg-royalBlue-900/20">
+                  No admitted patients in occupied rooms.
+                </div>
+              ) : patients.map((p, i) => (
                 <div key={i} className="group p-6 rounded-3xl border border-royalBlue-100/30 bg-royalBlue-50/50 hover:bg-white hover:shadow-2xl transition-all dark:border-royalBlue-800 dark:bg-royalBlue-900/20">
                   <div className="flex justify-between items-start mb-6">
                     <div className="flex items-center gap-4">
@@ -185,7 +244,15 @@ export default function NurseDashboard() {
           <motion.div variants={itemVariants} className="panel p-8">
             <h2 className="text-2xl font-black tracking-tight text-royalBlue-900 dark:text-white mb-8">Medication Rounds</h2>
             <div className="space-y-4">
-              {meds.map((m) => (
+              {loadingWard ? (
+                <div className="rounded-2xl border border-royalBlue-50 p-6 text-center text-sm font-bold text-royalBlue-400 dark:border-royalBlue-800/50">
+                  Loading medication rounds...
+                </div>
+              ) : meds.length === 0 ? (
+                <div className="rounded-2xl border border-royalBlue-50 p-6 text-center text-sm font-bold text-royalBlue-400 dark:border-royalBlue-800/50">
+                  No medication rounds for admitted patients.
+                </div>
+              ) : meds.map((m) => (
                 <div key={m.id} className="flex items-center justify-between p-5 rounded-2xl border border-royalBlue-50 dark:border-royalBlue-800/50 hover:bg-royalBlue-50/50 dark:hover:bg-royalBlue-900/10 transition-colors">
                   <div className="flex items-center gap-6">
                     <div className="text-sm font-black text-royalBlue w-24">{m.time}</div>

@@ -66,7 +66,7 @@ export default function LabTests() {
 
   // Doctor: Create Lab Test modal
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState({ patientId: "", testName: "", notes: "", amount: 25 });
+  const [createForm, setCreateForm] = useState({ patientId: "", testNames: [], notes: "", amount: 25 });
   const [creating, setCreating] = useState(false);
 
   // Nurse: Collect sample modal
@@ -116,11 +116,16 @@ export default function LabTests() {
   // Doctor: Create Lab Test
   const handleCreate = async (e) => {
     e.preventDefault();
+    if (createForm.testNames.length === 0) {
+      alert("Please select at least one lab test");
+      return;
+    }
+
     setCreating(true);
     try {
       await api.post("/lab-tests", createForm);
       setShowCreateModal(false);
-      setCreateForm({ patientId: "", testName: "", notes: "", amount: 25 });
+      setCreateForm({ patientId: "", testNames: [], notes: "", amount: 25 });
       fetchLabTests();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to create lab test");
@@ -196,11 +201,11 @@ export default function LabTests() {
   const completed      = labTests.filter(t => t.status === "Completed").length;
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8">
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6 sm:space-y-8">
       {/* Header */}
       <motion.div variants={itemVariants} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-black text-navyBlue-900 dark:text-white flex items-center gap-3">
+          <h1 className="flex items-center gap-3 text-2xl font-black text-navyBlue-900 dark:text-white sm:text-3xl">
             <FlaskConical className="text-royalBlue" size={32} />
             Lab Tests
           </h1>
@@ -216,7 +221,7 @@ export default function LabTests() {
         {role === "Doctor" && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 rounded-2xl bg-royalBlue px-6 py-3 text-sm font-black text-white shadow-lg shadow-royalBlue/30 transition-all hover:scale-105 active:scale-95"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-royalBlue px-6 py-3 text-sm font-black text-white shadow-lg shadow-royalBlue/30 transition-all hover:scale-105 active:scale-95 sm:w-auto"
           >
             <Plus size={18} /> Request Lab Test
           </button>
@@ -224,7 +229,7 @@ export default function LabTests() {
       </motion.div>
 
       {/* Stats Row */}
-      <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
         {[
           { label: "Pending Payment", value: pendingPayment, icon: CreditCard, color: "text-orange-500" },
           { label: "Pending Sample",  value: pendingSample,  icon: Droplets,   color: "text-blue-500" },
@@ -241,21 +246,21 @@ export default function LabTests() {
 
       {/* Search + Table */}
       <motion.div variants={itemVariants} className="rounded-3xl border border-navyBlue-100 bg-white overflow-hidden shadow-sm dark:border-navyBlue-800 dark:bg-navyBlue-900/40">
-        <div className="flex flex-col gap-4 border-b border-navyBlue-100 p-6 sm:flex-row sm:items-center sm:justify-between dark:border-navyBlue-800">
+        <div className="flex flex-col gap-4 border-b border-navyBlue-100 p-4 sm:p-6 sm:flex-row sm:items-center sm:justify-between dark:border-navyBlue-800">
           <h2 className="text-xl font-black text-navyBlue-900 dark:text-white">
             {role === "Receptionist" ? "Pending Payments" :
              role === "Nurse" ? "Samples to Collect" :
              role === "Lab Technician" ? "Tests to Analyze" :
              "All Lab Tests"}
           </h2>
-          <div className="flex items-center gap-3 rounded-2xl border border-navyBlue-100 bg-navyBlue-50 px-4 py-2.5 dark:border-navyBlue-700 dark:bg-navyBlue-800/50">
+          <div className="flex w-full items-center gap-3 rounded-2xl border border-navyBlue-100 bg-navyBlue-50 px-4 py-2.5 dark:border-navyBlue-700 dark:bg-navyBlue-800/50 sm:w-auto">
             <Search size={16} className="text-navyBlue-400" />
             <input
               type="text"
               placeholder="Search patient or test..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-transparent text-sm font-bold text-navyBlue-900 outline-none placeholder:text-navyBlue-300 dark:text-white w-48"
+              className="w-full bg-transparent text-sm font-bold text-navyBlue-900 outline-none placeholder:text-navyBlue-300 dark:text-white sm:w-48"
             />
           </div>
         </div>
@@ -270,49 +275,41 @@ export default function LabTests() {
             <p className="text-base font-bold text-navyBlue-300">No lab tests found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-navyBlue-50/50 text-[10px] font-black uppercase tracking-[0.2em] text-navyBlue-400 dark:bg-navyBlue-900/30 dark:text-navyBlue-300">
-                <tr>
-                  <th className="px-6 py-4">Patient</th>
-                  <th className="px-6 py-4">Test</th>
-                  <th className="px-6 py-4">Sample</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Doctor</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-navyBlue-50 dark:divide-navyBlue-800/50">
-                {filtered.map((test) => {
+          <div className="space-y-3 p-3 sm:p-4">
+            {filtered.map((test) => {
                   const patientName = test.patient?.name || test.patient?.user?.name || "Unknown";
                   const doctorName  = test.doctor?.name || "Unknown";
                   const date = new Date(test.createdAt).toLocaleDateString();
 
                   return (
-                    <motion.tr
+                    <motion.div
                       key={test._id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="group transition-colors hover:bg-navyBlue-50/50 dark:hover:bg-navyBlue-800/20"
+                      className="grid min-w-0 grid-cols-[minmax(135px,1.05fr)_minmax(145px,1.1fr)_minmax(72px,0.55fr)_minmax(126px,0.8fr)_minmax(128px,0.85fr)_minmax(86px,auto)] items-center gap-3 rounded-2xl border border-navyBlue-100 bg-navyBlue-50/40 p-3 transition-colors hover:bg-navyBlue-50 dark:border-navyBlue-800/60 dark:bg-navyBlue-950/30 dark:hover:bg-navyBlue-800/20"
                     >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                        <div className="flex min-w-0 items-center gap-2">
                           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-royalBlue/10 text-sm font-black text-royalBlue">
                             {patientName[0]}
                           </div>
-                          <span className="font-bold text-navyBlue-900 dark:text-white">{patientName}</span>
+                          <div className="min-w-0">
+                            <div className="truncate font-bold text-navyBlue-900 dark:text-white">{patientName}</div>
+                          </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 font-bold text-navyBlue-700 dark:text-navyBlue-200">{test.testName}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-navyBlue-500 dark:text-navyBlue-300">
-                        {test.specimenType || "Awaiting"}
-                      </td>
-                      <td className="px-6 py-4"><StatusBadge status={test.status} /></td>
-                      <td className="px-6 py-4 text-sm text-navyBlue-500 dark:text-navyBlue-400">{doctorName}</td>
-                      <td className="px-6 py-4 text-sm text-navyBlue-400">{date}</td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="min-w-0">
+                          <div className="truncate font-bold text-navyBlue-700 dark:text-navyBlue-200">{test.testName}</div>
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold text-navyBlue-500 dark:text-navyBlue-300">{test.specimenType || "Awaiting"}</div>
+                        </div>
+                        <div className="min-w-0">
+                          <StatusBadge status={test.status} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold text-navyBlue-500 dark:text-navyBlue-300">{doctorName}</div>
+                          <div className="text-xs font-bold text-navyBlue-400">{date}</div>
+                        </div>
+                        <div className="flex min-w-0 items-center justify-end gap-2">
                           {/* Receptionist: Pay */}
                           {(role === "Receptionist" || role === "Admin" || role === "Accountant") && test.status === "Pending Payment" && (
                             <button
@@ -338,9 +335,9 @@ export default function LabTests() {
                                 });
                                 setShowCollectModal(true);
                               }}
-                              className="flex items-center gap-1.5 rounded-xl bg-blue-500 px-3 py-1.5 text-xs font-black text-white transition-all hover:scale-105 hover:bg-blue-600"
+                              className="flex items-center gap-1 rounded-xl bg-blue-500 px-2.5 py-1.5 text-xs font-black text-white transition-all hover:scale-105 hover:bg-blue-600"
                             >
-                              <Droplets size={13} /> Forward
+                              <Droplets size={13} /> <span>Forward</span>
                             </button>
                           )}
 
@@ -364,45 +361,42 @@ export default function LabTests() {
                             </button>
                           )}
                         </div>
-                      </td>
-                    </motion.tr>
+                    </motion.div>
                   );
                 })}
-              </tbody>
-            </table>
           </div>
         )}
       </motion.div>
 
       {/* DOCTOR: Create Lab Test Modal */}
       {showCreateModal && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-2 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative w-full max-w-md rounded-[32px] border border-white/10 bg-navyBlue-950 p-8 shadow-2xl"
+            className="relative w-full max-w-5xl rounded-[22px] border border-white/10 bg-navyBlue-950 p-3 shadow-2xl sm:p-4"
           >
-            <button onClick={() => setShowCreateModal(false)} className="absolute right-5 top-5 rounded-full p-2 text-navyBlue-300 hover:bg-white/10 hover:text-white">
-              <X size={20} />
+            <button onClick={() => setShowCreateModal(false)} className="absolute right-3 top-3 rounded-full p-2 text-navyBlue-300 hover:bg-white/10 hover:text-white">
+              <X size={16} />
             </button>
-            <div className="mb-6 flex items-center gap-3">
-              <div className="rounded-2xl bg-royalBlue/20 p-3">
-                <FlaskConical className="text-royalBlue" size={24} />
+            <div className="mb-2 flex items-center gap-2">
+              <div className="rounded-xl bg-royalBlue/20 p-2">
+                <FlaskConical className="text-royalBlue" size={18} />
               </div>
               <div>
-                <h2 className="text-xl font-black text-white">Request Lab Test</h2>
-                <p className="text-xs text-navyBlue-400">Select patient and test type</p>
+                <h2 className="text-lg font-black text-white">Request Lab Tests</h2>
+                <p className="text-[11px] text-navyBlue-400">Select patient and one or more test types</p>
               </div>
             </div>
 
-            <form onSubmit={handleCreate} className="space-y-4">
+            <form onSubmit={handleCreate} className="space-y-2">
               <div>
-                <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-navyBlue-400">Patient</label>
+                <label className="mb-0.5 block text-[10px] font-black uppercase tracking-wider text-navyBlue-400">Patient</label>
                 <select
                   required
                   value={createForm.patientId}
                   onChange={(e) => setCreateForm({ ...createForm, patientId: e.target.value })}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-royalBlue focus:outline-none focus:ring-2 focus:ring-royalBlue/20 [&>option]:bg-navyBlue-900"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-royalBlue focus:outline-none focus:ring-2 focus:ring-royalBlue/20 [&>option]:bg-navyBlue-900"
                 >
                   <option value="">— Select Patient —</option>
                   {patients.map((p) => (
@@ -412,46 +406,75 @@ export default function LabTests() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-navyBlue-400">Test Type</label>
-                <select
-                  required
-                  value={createForm.testName}
-                  onChange={(e) => setCreateForm({ ...createForm, testName: e.target.value })}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-royalBlue focus:outline-none focus:ring-2 focus:ring-royalBlue/20 [&>option]:bg-navyBlue-900"
-                >
-                  <option value="">— Select Test —</option>
-                  {TEST_TYPES.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
+                <div className="mb-1 flex items-center justify-between gap-3">
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-navyBlue-400">Test Types</label>
+                  <span className="rounded-full bg-royalBlue/20 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-royalBlue">
+                    {createForm.testNames.length} selected
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 rounded-xl border border-white/10 bg-white/5 p-1.5 md:grid-cols-4">
+                  {TEST_TYPES.map((test) => {
+                    const checked = createForm.testNames.includes(test);
+                    return (
+                      <label
+                        key={test}
+                        className={`flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border px-2 text-[10px] font-black transition ${
+                          checked
+                            ? "border-royalBlue bg-royalBlue/25 text-white"
+                            : "border-white/10 bg-white/5 text-navyBlue-300 hover:bg-white/10"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            setCreateForm((prev) => ({
+                              ...prev,
+                              testNames: checked
+                                ? prev.testNames.filter((item) => item !== test)
+                                : [...prev.testNames, test],
+                            }));
+                          }}
+                          className="h-3 w-3 rounded border-white/20 text-royalBlue focus:ring-royalBlue"
+                        />
+                        <span className="leading-tight">{test}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-navyBlue-400">Notes (Optional)</label>
+                <label className="mb-0.5 block text-[10px] font-black uppercase tracking-wider text-navyBlue-400">Notes (Optional)</label>
                 <textarea
-                  rows={3}
+                  rows={1}
                   value={createForm.notes}
                   onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
                   placeholder="Any special instructions..."
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-navyBlue-500 focus:border-royalBlue focus:outline-none focus:ring-2 focus:ring-royalBlue/20 resize-none"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-navyBlue-500 focus:border-royalBlue focus:outline-none focus:ring-2 focus:ring-royalBlue/20 resize-none"
                 />
               </div>
 
-              <div>
-                <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-navyBlue-400">Lab Fee</label>
+              <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+                <div>
+                <label className="mb-0.5 block text-[10px] font-black uppercase tracking-wider text-navyBlue-400">Lab Fee Per Test</label>
                 <input
                   type="number"
                   min="0"
                   required
                   value={createForm.amount}
                   onChange={(e) => setCreateForm({ ...createForm, amount: e.target.value })}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white focus:border-royalBlue focus:outline-none focus:ring-2 focus:ring-royalBlue/20"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white focus:border-royalBlue focus:outline-none focus:ring-2 focus:ring-royalBlue/20"
                 />
+                </div>
+                <div className="rounded-xl bg-white/5 px-4 py-2 text-sm font-black text-royalBlue">
+                  Total: ${((Number(createForm.amount) || 0) * createForm.testNames.length).toLocaleString()}
+                </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setShowCreateModal(false)} className="rounded-full px-6 py-3 text-sm font-bold text-navyBlue-300 hover:text-white hover:bg-white/5">Cancel</button>
-                <button type="submit" disabled={creating} className="rounded-full bg-royalBlue px-8 py-3 text-sm font-black text-white shadow-lg shadow-royalBlue/30 hover:scale-105 active:scale-95 disabled:opacity-50 transition-transform">
+              <div className="flex flex-col justify-end gap-2 sm:flex-row">
+                <button type="button" onClick={() => setShowCreateModal(false)} className="rounded-full px-5 py-2 text-sm font-bold text-navyBlue-300 hover:text-white hover:bg-white/5">Cancel</button>
+                <button type="submit" disabled={creating || createForm.testNames.length === 0} className="rounded-full bg-royalBlue px-7 py-2 text-sm font-black text-white shadow-lg shadow-royalBlue/30 hover:scale-105 active:scale-95 disabled:opacity-50 transition-transform">
                   {creating ? "Sending..." : "Send Request"}
                 </button>
               </div>
@@ -467,7 +490,7 @@ export default function LabTests() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative w-full max-w-md rounded-[32px] border border-white/10 bg-navyBlue-950 p-8 shadow-2xl"
+            className="relative max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-[24px] border border-white/10 bg-navyBlue-950 p-5 shadow-2xl sm:rounded-[32px] sm:p-8"
           >
             <button onClick={() => setShowCollectModal(false)} className="absolute right-5 top-5 rounded-full p-2 text-navyBlue-300 hover:bg-white/10 hover:text-white">
               <X size={20} />
@@ -528,7 +551,7 @@ export default function LabTests() {
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex flex-col justify-end gap-3 pt-2 sm:flex-row">
                 <button type="button" onClick={() => setShowCollectModal(false)} className="rounded-full px-6 py-3 text-sm font-bold text-navyBlue-300 hover:text-white hover:bg-white/5">Cancel</button>
                 <button type="submit" disabled={collecting || collectForm.specimenTypes.length === 0} className="rounded-full bg-blue-600 px-8 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/30 hover:scale-105 active:scale-95 disabled:opacity-50 transition-transform">
                   {collecting ? "Forwarding..." : "Send to Lab"}
@@ -546,7 +569,7 @@ export default function LabTests() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative w-full max-w-md rounded-[32px] border border-white/10 bg-navyBlue-950 p-8 shadow-2xl"
+            className="relative max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-[24px] border border-white/10 bg-navyBlue-950 p-5 shadow-2xl sm:rounded-[32px] sm:p-8"
           >
             <button onClick={() => setShowUploadModal(false)} className="absolute right-5 top-5 rounded-full p-2 text-navyBlue-300 hover:bg-white/10 hover:text-white">
               <X size={20} />
@@ -581,16 +604,16 @@ export default function LabTests() {
 
               <div>
                 <label className="mb-1.5 block text-xs font-black uppercase tracking-wider text-navyBlue-400">Upload File (PDF / Image)</label>
-                <div className="flex items-center gap-3 rounded-2xl border border-dashed border-white/20 bg-white/5 p-4 cursor-pointer hover:bg-white/10 transition-colors" onClick={() => document.getElementById("resultFileInput").click()}>
+                <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-dashed border-white/20 bg-white/5 p-4 cursor-pointer hover:bg-white/10 transition-colors" onClick={() => document.getElementById("resultFileInput").click()}>
                   <Upload className="text-purple-400" size={20} />
-                  <span className="text-sm text-navyBlue-300">
+                  <span className="min-w-0 truncate text-sm text-navyBlue-300">
                     {resultFile ? resultFile.name : "Click to select PDF or image file"}
                   </span>
                 </div>
                 <input id="resultFileInput" type="file" accept=".pdf,image/*" className="hidden" onChange={(e) => setResultFile(e.target.files[0])} />
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex flex-col justify-end gap-3 pt-2 sm:flex-row">
                 <button type="button" onClick={() => setShowUploadModal(false)} className="rounded-full px-6 py-3 text-sm font-bold text-navyBlue-300 hover:text-white hover:bg-white/5">Cancel</button>
                 <button type="submit" disabled={uploading || (!resultText && !resultFile)} className="rounded-full bg-purple-600 px-8 py-3 text-sm font-black text-white shadow-lg shadow-purple-600/30 hover:scale-105 active:scale-95 disabled:opacity-50 transition-transform">
                   {uploading ? "Uploading..." : "Submit Result"}
@@ -608,7 +631,7 @@ export default function LabTests() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative w-full max-w-lg rounded-[32px] border border-white/10 bg-navyBlue-950 p-8 shadow-2xl"
+            className="relative max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-[24px] border border-white/10 bg-navyBlue-950 p-5 shadow-2xl sm:rounded-[32px] sm:p-8"
           >
             <button onClick={() => setShowResultModal(false)} className="absolute right-5 top-5 rounded-full p-2 text-navyBlue-300 hover:bg-white/10 hover:text-white">
               <X size={20} />

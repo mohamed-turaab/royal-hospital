@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { getRooms } from "../services/roomService";
+import { useAuth } from "../context/AuthContext";
 import { motion } from "framer-motion";
 import { DoorOpen, User, CreditCard, Activity, Plus } from "lucide-react";
 
 const Rooms = () => {
+  const { user } = useAuth();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const canManageRooms = user?.role === "Admin";
 
   useEffect(() => {
     fetchRooms();
@@ -56,10 +59,12 @@ const Rooms = () => {
           </h1>
           <p className="text-navyBlue-500 dark:text-royalBlue-300 mt-1 font-medium">Monitor and manage hospital room allocations</p>
         </div>
-        <button className="flex items-center gap-2 bg-royalBlue hover:bg-royalBlue-600 text-white px-6 py-2.5 rounded-xl transition-all duration-300 shadow-lg shadow-royalBlue/20 font-bold">
-          <Plus className="w-5 h-5" />
-          <span>Add New Room</span>
-        </button>
+        {canManageRooms && (
+          <button className="flex items-center gap-2 bg-royalBlue hover:bg-royalBlue-600 text-white px-6 py-2.5 rounded-xl transition-all duration-300 shadow-lg shadow-royalBlue/20 font-bold">
+            <Plus className="w-5 h-5" />
+            <span>Add New Room</span>
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
